@@ -1,5 +1,6 @@
 package com.dementor;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -8,7 +9,7 @@ class DeMentorApplicationTests {
 
 	@Test
 	void contextLoads() {
-		System.out.println("hello");
+		Assertions.assertTrue(true);
 	}
 
 }
