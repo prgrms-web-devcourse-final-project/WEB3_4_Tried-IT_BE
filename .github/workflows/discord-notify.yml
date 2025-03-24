@@ -1,0 +1,18 @@
+name: Discord Notification
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Notification
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: "🚀 **New GitHub Event!**\n🔹 Repository: ${{ github.repository }}\n🔹 Event: ${{ github.event_name }}\n🔗 [View on GitHub](${{ github.event.issue.html_url || github.event.pull_request.html_url }})"
