@@ -1,0 +1,44 @@
+package com.dementor.domain.chat.controller;
+
+import com.dementor.domain.chat.dto.ChatMessageSendDto;
+import com.dementor.domain.chat.dto.ChatMessageResponseDto;
+import com.dementor.domain.chat.service.ChatService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.stereotype.Controller;
+
+@Controller
+@RequiredArgsConstructor
+public class WebSocketController {
+
+    private final ChatService chatService;
+    private final SimpMessageSendingOperations messagingTemplate;
+    private final JwtParser jwtParser; // ➤ JWT에서 userId, nickname 파싱하는 유틸
+
+    @MessageMapping("/chat/message")
+    public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
+        Long userId = jwtParser.getUserId(token);
+        String nickname = jwtParser.getNickname(token);
+
+        ChatMessageResponseDto response = chatService.handleMessage(dto, userId, nickname);
+        messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
+    }
+}
+
+//
+//JWT가 잘못되었을 경우 예외처리
+//@MessageMapping("/chat/message")
+//public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
+//    try {
+//        Long userId = jwtParser.getUserId(token);
+//        String nickname = jwtParser.getNickname(token);
+//
+//        ChatMessageResponseDto response = chatService.handleMessage(dto, userId, nickname);
+//        messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
+//    } catch (Exception e) {
+//        // 예: 인증 실패, 응답 생략 등
+//        System.err.println("WebSocket 인증 오류: " + e.getMessage());
+//    }
+//}
