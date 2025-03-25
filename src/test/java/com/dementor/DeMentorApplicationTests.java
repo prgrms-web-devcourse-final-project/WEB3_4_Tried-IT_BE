@@ -12,4 +12,9 @@ class DeMentorApplicationTests {
 		Assertions.assertTrue(true);
 	}
 
+	@Test
+	void hello() {
+		Assertions.assertTrue(true);
+	}
+
 }
