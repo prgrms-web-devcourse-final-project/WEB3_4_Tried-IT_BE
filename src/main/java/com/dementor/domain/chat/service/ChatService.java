@@ -26,10 +26,14 @@ public class ChatService {
 
         ChatMessage message = new ChatMessage();
         message.setChatRoom(chatRoom);
-        message.setSender(nickname);  // DB엔 nickname만 저장
-        message.setContent(dto.getMessage());
+        message.setNickname(nickname);  // DB엔 nickname만 저장
 
-        ChatMessage saved = chatMessageRepository.save(message);  // 저장 후 엔티티 사용
+        if (dto.getType() == ChatMessageSendDto.MessageType.MESSAGE) {
+            message.setContent(dto.getMessage());
+            chatMessageRepository.save(message);
+        } else {
+            message.setContent(dto.getType().name()); // ENTER/EXIT은 단순 알림 텍스트
+        }
 
         return new ChatMessageResponseDto(
                 dto.getType().name(),
@@ -37,7 +41,7 @@ public class ChatService {
                 userId,
                 nickname,
                 dto.getMessage(),
-                saved.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")) // 정확한 시간
+                ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
         );
     }
 
@@ -51,7 +55,7 @@ public class ChatService {
                         "MESSAGE",
                         applymentId,
                         null,
-                        msg.getSender(),
+                        msg.getNickname(),
                         msg.getContent(),
                         msg.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")) //브로드캐스트 시 createdAt과 sentAt이 다른 시간이 되면 UX 혼란생길 수 있음
                 ))

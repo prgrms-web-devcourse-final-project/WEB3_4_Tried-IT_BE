@@ -3,6 +3,7 @@ package com.dementor.domain.chat.controller;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.service.ChatService;
+import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,7 +16,7 @@ public class WebSocketController {
 
     private final ChatService chatService;
     private final SimpMessageSendingOperations messagingTemplate;
-    private final JwtParser jwtParser; // ➤ JWT에서 userId, nickname 파싱하는 유틸
+    private final JwtParser jwtParser;
 
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
@@ -26,6 +27,7 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
     }
 }
+
 
 //
 //JWT가 잘못되었을 경우 예외처리

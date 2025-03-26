@@ -1,5 +1,6 @@
 package com.dementor.domain.chat.entity;
 
+import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,4 +29,8 @@ public class ChatMessage {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ChatMessageSendDto.MessageType type;
 }
