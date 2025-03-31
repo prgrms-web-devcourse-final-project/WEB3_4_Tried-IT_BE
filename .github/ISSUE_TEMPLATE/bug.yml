@@ -1,0 +1,29 @@
+name: Bug Report
+description: 버그를 발견했다면 알려주세요!
+title: "[Bug] "
+labels: ["bug"]
+assignees:
+  - your-username
+
+body:
+  - type: markdown
+    attributes:
+      value: "## 🐛 버그 설명\n발견한 버그를 설명해주세요."
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: "⚠️ 발생한 문제"
+      description: "어떤 문제가 발생했는지 자세히 적어주세요."
+      placeholder: "버그 내용 작성"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "✅ 예상했던 동작"
+      description: "원래 기대했던 동작을 설명해주세요."
+      placeholder: "기대했던 동작 작성"
+    validations:
+      required: false

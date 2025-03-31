@@ -1,0 +1,23 @@
+name: Discord Notification
+
+on:
+  issues:
+    types: [ opened, closed ]
+  pull_request:
+    types: [ opened, closed ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Notification
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            ${{ 
+              github.event_name == 'issues' && github.event.action == 'closed' && format('🎉 **이슈가 닫혔습니다!**\n🔹 Repository: {0}\n🔹 이슈 제목: {1}\n🔗 [GitHub에서 보기]({2})', github.repository, github.event.issue.title, github.event.issue.html_url) || 
+              github.event_name == 'pull_request' && github.event.action == 'closed' && format('🎉 **PR이 닫혔습니다!**\n🔹 Repository: {0}\n🔹 PR 제목: {1}\n🔗 [GitHub에서 보기]({2})', github.repository, github.event.pull_request.title, github.event.pull_request.html_url) ||
+              format('🚀 **새로운 GitHub 이벤트!**\n🔹 Repository: {0}\n🔹 이벤트: {1}\n🔗 [GitHub에서 보기]({2})', github.repository, github.event_name, github.event.issue.html_url || github.event.pull_request.html_url)
+            }}

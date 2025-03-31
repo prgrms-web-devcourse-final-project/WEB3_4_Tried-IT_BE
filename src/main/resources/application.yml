@@ -1,3 +1,49 @@
 spring:
   application:
     name: DeMentor
+  profiles:
+    active: local
+  config:
+    import:
+      - optional:file:.env[.properties]
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  expiration: 3600000 # 1시간
+  cookie:
+    name: jwt
+    http-only: true # XSS 공격 방어를 위한 핵심 설정
+    secure: false  # 개발환경에서는 false, 운영환경에서는 true, HTTPS 연결에서만 쿠키 전송 허용
+    path: / # 쿠키가 유효한 경로 지정
+    max-age-seconds: 86400
