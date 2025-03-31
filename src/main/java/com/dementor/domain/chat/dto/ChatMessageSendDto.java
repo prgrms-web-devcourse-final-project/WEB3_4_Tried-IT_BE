@@ -1,5 +1,6 @@
 package com.dementor.domain.chat.dto;
 
+import com.dementor.domain.chat.entity.MessageType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,10 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ChatMessageSendDto {  //입력 DTO(send용) 클라이언트->서버
-
-    public enum MessageType {
-        ENTER, MESSAGE, EXIT
-    }
 
     private MessageType type;
     private Long applymentId;  // 어떤 채팅방인지

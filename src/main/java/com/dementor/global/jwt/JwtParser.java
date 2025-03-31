@@ -31,9 +31,10 @@ public class JwtParser {
                 .getBody();
     }
 
-    public Long getUserId(String token) {
-        return parseClaims(token).get("userId", Long.class);
+    public Long getMemberId(String token) {
+        return parseClaims(token).get("memberId", Long.class);
     }
+
 
     public String getNickname(String token) {
         return parseClaims(token).get("nickname", String.class);

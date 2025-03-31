@@ -3,7 +3,7 @@ description: 버그를 발견했다면 알려주세요!
 title: "[Bug] "
 labels: ["bug"]
 assignees:
-  - your-username
+  - your-memberIdname
 
 body:
   - type: markdown

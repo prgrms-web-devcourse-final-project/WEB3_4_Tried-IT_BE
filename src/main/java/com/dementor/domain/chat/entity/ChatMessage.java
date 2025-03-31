@@ -1,6 +1,5 @@
 package com.dementor.domain.chat.entity;
 
-import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,8 +20,24 @@ public class ChatMessage {
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
+
+    @Enumerated(EnumType.STRING) // ENTER, MESSAGE, EXIT
     @Column(nullable = false)
-    private String nickname;  //닉네임 저장용
+    private MessageType type;
+
+
+    @Column(nullable = false)
+    private Long memberId;
+
+    @Column
+    private Long adminId; // 추후 연동 대비
+
+    @Column(nullable = false)
+    private String nickname;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private SenderType senderType; // "MEMBER" 또는 "ADMIN"
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
@@ -30,7 +45,7 @@ public class ChatMessage {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ChatMessageSendDto.MessageType type;
+
+
+
 }

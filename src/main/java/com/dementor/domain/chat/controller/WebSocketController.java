@@ -20,24 +20,29 @@ public class WebSocketController {
 
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
-        Long userId = jwtParser.getUserId(token);
-        String nickname = jwtParser.getNickname(token);
+        try {
+            Long memberId = jwtParser.getMemberId(token); //✅
+            String nickname = jwtParser.getNickname(token);
 
-        ChatMessageResponseDto response = chatService.handleMessage(dto, userId, nickname);
-        messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
+            ChatMessageResponseDto response = chatService.handleMessage(dto, memberId, nickname);
+            messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
+        }
+        // 웹소켓 연결시  예외처리(JWT 인증 실패 등의 예외가 발생해도 서버가 죽지 않도록)
+        catch (Exception e) {
+            System.err.println("WebSocket 인증 오류: " + e.getMessage());
+        }
     }
 }
 
 
-//
-//JWT가 잘못되었을 경우 예외처리
+// -메시지 보낼 때 예외처리 (JWT가 잘못되었을 경우 예외처리)
 //@MessageMapping("/chat/message")
 //public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
 //    try {
-//        Long userId = jwtParser.getUserId(token);
+//        Long memberId = jwtParser.getmemberId(token);
 //        String nickname = jwtParser.getNickname(token);
 //
-//        ChatMessageResponseDto response = chatService.handleMessage(dto, userId, nickname);
+//        ChatMessageResponseDto response = chatService.handleMessage(dto, memberId, nickname);
 //        messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
 //    } catch (Exception e) {
 //        // 예: 인증 실패, 응답 생략 등
