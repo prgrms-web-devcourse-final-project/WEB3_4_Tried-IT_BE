@@ -2,6 +2,8 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.dto.ChatRoomResponseDto;
+import com.dementor.domain.chat.service.ChatMessageService;
+
 import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import java.util.List;
 public class ChatController {
 
     private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
+
     private final JwtParser jwtParser; // 주입
 
 
@@ -27,7 +31,7 @@ public class ChatController {
             @RequestParam(required = false) Long beforeMessageId,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return ResponseEntity.ok(chatRoomService.getMessages(chatRoomId, beforeMessageId, size));
+        return ResponseEntity.ok(chatMessageService.getMessages(chatRoomId, beforeMessageId, size));
     }
 
 
