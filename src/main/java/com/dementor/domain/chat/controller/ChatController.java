@@ -5,7 +5,8 @@ import com.dementor.domain.chat.dto.ChatRoomResponseDto;
 import com.dementor.domain.chat.service.ChatMessageService;
 
 import com.dementor.domain.chat.service.ChatRoomService;
-import com.dementor.global.jwt.JwtParser;
+import com.dementor.global.security.jwt.JwtTokenProvider;
+import io.jsonwebtoken.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,7 @@ public class ChatController {
     private final ChatRoomService chatRoomService;
     private final ChatMessageService chatMessageService;
 
-    private final JwtParser jwtParser; // 주입
-
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     // 커서 기반 메시지 조회 (최신 → 오래된 순, 무한스크롤)
@@ -38,7 +38,7 @@ public class ChatController {
     // 채팅방 목록조회   /api/chat/rooms
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(@RequestHeader("Authorization") String token) {
-        Long memberId = jwtParser.getMemberId(token); // jwt✅
+        Long memberId = jwtTokenProvider.getMemberId(token);
         return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId));
     }
 

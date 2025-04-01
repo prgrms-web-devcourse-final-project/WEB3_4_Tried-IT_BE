@@ -4,7 +4,7 @@ import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.service.ChatMessageService;
 import com.dementor.domain.chat.service.ChatRoomService;
-import com.dementor.global.jwt.JwtParser;
+import com.dementor.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,16 +15,16 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class WebSocketController {
 
-    private final ChatRoomService chatRoomService;
+
     private final ChatMessageService chatMessageService;
     private final SimpMessageSendingOperations messagingTemplate;
-    private final JwtParser jwtParser;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
         try {
-            Long memberId = jwtParser.getMemberId(token);
-            String nickname = jwtParser.getNickname(token);
+            Long memberId = jwtTokenProvider.getMemberId(token);
+            String nickname = jwtTokenProvider.getNickname(token);
 
             ChatMessageResponseDto response = chatMessageService.handleMessage(dto, memberId, nickname);
             messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
