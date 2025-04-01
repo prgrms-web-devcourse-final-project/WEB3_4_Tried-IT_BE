@@ -1,5 +1,6 @@
 package com.dementor.domain.mentoringclass.entity;
 
+import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.global.base.BaseEntity;
 import jakarta.persistence.*;
@@ -47,4 +48,8 @@ public class MentoringClass extends BaseEntity {
         this.price = price;
     }
 
+
+    public Member getMember() {
+        return member;
+    }
 }
