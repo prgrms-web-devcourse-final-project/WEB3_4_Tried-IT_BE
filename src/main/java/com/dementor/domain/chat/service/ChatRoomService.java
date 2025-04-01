@@ -102,7 +102,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
 
-    // ✅ 리팩토링을 위해 추가된 의존성
+
     private final ApplyRepository applyRepository;
     private final MemberRepository memberRepository;
 
@@ -115,9 +115,10 @@ public class ChatRoomService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 신청이 존재하지 않습니다."));
 
         // 나와 상대방 구분
-        Long mentorId = apply.getMentoringClass().getMember().getId(); // 수업 개설자
+        Long mentorId = apply.getMentoringClass().getMember().getId(); // 수업 개설자 = 멘토(→ mentor → member → id)
         Long menteeId = apply.getMember().getId(); // 신청자
 
+        //내가 아닌 상대방
         Long opponentId = !mentorId.equals(myId) ? mentorId : menteeId;
 
         Member opponent = memberRepository.findById(opponentId)

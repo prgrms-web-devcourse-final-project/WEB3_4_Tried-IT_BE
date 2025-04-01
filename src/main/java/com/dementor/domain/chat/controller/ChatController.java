@@ -28,13 +28,13 @@ public class ChatController {
     @PostMapping("/room")
     public ResponseEntity<Long> createChatRoom(
             @RequestParam Long applymentId,
-            @RequestParam Long opponentId,  // 상대방 ID (멘토든 멘티든 상관 없음)
             @RequestHeader("Authorization") String token
     ) {
         Long myId = jwtTokenProvider.getMemberId(token);
-        Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId, opponentId);
+        Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId);
         return ResponseEntity.ok(chatRoomId);
     }
+
 
 
     // 채팅방 목록조회   /api/chat/rooms
