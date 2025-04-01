@@ -51,5 +51,5 @@ public class ChatRoom {
     // 닉네임 가져오기 (선택적)
     public String getMemberNickname() {
         return member != null ? member.getNickname() : "알 수 없음";
-    }
+     }
     }
