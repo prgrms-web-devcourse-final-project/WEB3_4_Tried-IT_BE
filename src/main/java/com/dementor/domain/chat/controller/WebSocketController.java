@@ -1,7 +1,7 @@
 package com.dementor.domain.chat.controller;
 
-import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
+import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.service.ChatService;
 import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
