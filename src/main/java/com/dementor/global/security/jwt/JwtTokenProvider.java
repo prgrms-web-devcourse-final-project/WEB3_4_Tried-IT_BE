@@ -192,4 +192,28 @@ public class JwtTokenProvider implements InitializingBean {
 		return false;
 	}
 
+	// JWT에서 memberId 꺼내기
+	public Long getMemberId(String token) {
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+
+		return claims.get("memberId", Long.class);
+	}
+
+	// JWT에서 nickname 꺼내기
+	public String getNickname(String token) {
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+
+		return claims.get("nickname", String.class);
+	}
+
+
+
 }
