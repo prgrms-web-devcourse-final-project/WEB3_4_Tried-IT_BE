@@ -130,7 +130,7 @@ public class ChatRoomService {
     //채팅방 조회+ 마지막 메시지 조회 + 상대 닉네임 매핑
     @Transactional(readOnly = true)
     public List<ChatRoomResponseDto> getMyChatRooms(Long memberId) {
-        List<ChatRoom> rooms = chatRoomRepository.findByMemberId(memberId); // 사용자 채팅방 목록 조회
+        List<ChatRoom> rooms = chatRoomRepository.findByMember_Id(memberId); // 사용자 채팅방 목록 조회
 
         return rooms.stream().map(room -> {
             // 1. 마지막 메시지 가져오기
