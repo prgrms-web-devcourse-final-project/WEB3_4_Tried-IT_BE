@@ -2,7 +2,7 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.dto.ChatRoomResponseDto;
-import com.dementor.domain.chat.service.ChatService;
+import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/chat")
 public class ChatController {
 
-    private final ChatService chatService;
+    private final ChatRoomService chatRoomService;
     private final JwtParser jwtParser; // 주입
 
 
@@ -27,7 +27,7 @@ public class ChatController {
             @RequestParam(required = false) Long beforeMessageId,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return ResponseEntity.ok(chatService.getMessages(chatRoomId, beforeMessageId, size));
+        return ResponseEntity.ok(chatRoomService.getMessages(chatRoomId, beforeMessageId, size));
     }
 
 
@@ -35,7 +35,7 @@ public class ChatController {
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(@RequestHeader("Authorization") String token) {
         Long memberId = jwtParser.getMemberId(token); // jwt✅
-        return ResponseEntity.ok(chatService.getMyChatRooms(memberId));
+        return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId));
     }
 
 
