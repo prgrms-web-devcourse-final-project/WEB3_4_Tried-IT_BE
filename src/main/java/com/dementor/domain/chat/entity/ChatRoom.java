@@ -43,8 +43,8 @@ public class ChatRoom {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // ✅ memberId 반환
+    // memberId 반환
     public Long getMemberId() {
-        return member != null ? member.getMemberId() : null;
+        return member != null ? member.getId() : null;
         }
     }
