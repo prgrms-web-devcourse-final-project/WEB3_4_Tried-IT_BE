@@ -1,16 +1,14 @@
 package com.dementor.domain.chat.controller;
 
-import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.dto.ChatRoomResponseDto;
 import com.dementor.domain.chat.service.ChatService;
+import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import com.dementor.global.jwt.JwtParser;
 
 @RestController
 @RequiredArgsConstructor
