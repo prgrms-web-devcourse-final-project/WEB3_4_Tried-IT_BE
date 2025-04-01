@@ -24,6 +24,29 @@ public class ChatController {
     private final JwtTokenProvider jwtTokenProvider;
 
 
+    //채팅방 생성
+    @PostMapping("/room")
+    public ResponseEntity<Long> createChatRoom(
+            @RequestParam Long applymentId,
+            @RequestParam Long opponentId,  // 상대방 ID (멘토든 멘티든 상관 없음)
+            @RequestHeader("Authorization") String token
+    ) {
+        Long myId = jwtTokenProvider.getMemberId(token);
+        Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId, opponentId);
+        return ResponseEntity.ok(chatRoomId);
+    }
+
+
+    // 채팅방 목록조회   /api/chat/rooms
+    @GetMapping("/rooms")
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(@RequestHeader("Authorization") String token) {
+        Long memberId = jwtTokenProvider.getMemberId(token);
+        return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId));
+    }
+
+
+
+
     // 커서 기반 메시지 조회 (최신 → 오래된 순, 무한스크롤)
     @GetMapping("/room/{chatRoomId}/messages")
     public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(
@@ -35,12 +58,6 @@ public class ChatController {
     }
 
 
-    // 채팅방 목록조회   /api/chat/rooms
-    @GetMapping("/rooms")
-    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(@RequestHeader("Authorization") String token) {
-        Long memberId = jwtTokenProvider.getMemberId(token);
-        return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId));
-    }
 
 
 //    //  예전 전체 메시지 조회 API (선택적으로 유지 가능)
