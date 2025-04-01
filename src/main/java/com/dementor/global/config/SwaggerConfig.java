@@ -11,7 +11,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
-@OpenAPIDefinition(servers = {@Server(url = "https://dementor.site/", description = "Default Server URL")})
+@OpenAPIDefinition(servers = {@Server(url = "https://api.dementor.site/", description = "Default Server URL")})
 @Configuration
 public class SwaggerConfig {
 	@Bean
