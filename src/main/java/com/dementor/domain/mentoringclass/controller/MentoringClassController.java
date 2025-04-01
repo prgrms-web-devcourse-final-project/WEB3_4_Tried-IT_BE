@@ -1,13 +1,18 @@
 package com.dementor.domain.mentoringclass.controller;
 
 import com.dementor.domain.mentoringclass.dto.request.MentoringClassCreateRequest;
+import com.dementor.domain.mentoringclass.dto.response.MentoringClassDetailResponse;
 import com.dementor.domain.mentoringclass.dto.response.MentoringClassFindResponse;
 import com.dementor.domain.mentoringclass.service.MentoringClassService;
 import com.dementor.global.ApiResponse;
+import com.dementor.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/class")
 @RequiredArgsConstructor
+@Slf4j
 public class MentoringClassController {
     private final MentoringClassService mentoringClassService;
 
@@ -24,7 +30,7 @@ public class MentoringClassController {
     public ApiResponse<?> getClass(
             @RequestParam(required = false) Long jobId
     ) {
-        List<MentoringClassFindResponse> list = mentoringClassService.selectClass(jobId);
+        List<MentoringClassFindResponse> list = mentoringClassService.findClass(jobId);
         return ApiResponse.of(
                 true,
                 HttpStatus.OK,
@@ -33,31 +39,40 @@ public class MentoringClassController {
         );
     }
 
-    // TODO : /api/mentor/class/{mentor_id} 로 바꿀 예정
-    @Operation(summary = "멘토가 등록한 수업 조회", description = "멘토가 자신의 수업을 조회합니다.")
-    @GetMapping("/{mentor_id}")
-    public ApiResponse<?> getClassByMentorId(
-        @PathVariable(required = false) Long mentorId
-    ) {
-        return null;
-    }
+    // TODO : /api/mentor/class/{mentor_id} 멘토 도메인으로 옮겨야 함.
+//    @Operation(summary = "멘토가 등록한 수업 조회", description = "멘토가 자신의 수업을 조회합니다.")
+//    @GetMapping("/{mentor_id}")
+//    public ApiResponse<?> getClassByMentorId(
+//        @PathVariable(required = false) Long mentorId
+//    ) {
+//        return null;
+//    }
 
     @Operation(summary = "멘토링 수업 상세 조회", description = "특정 멘토링 수업의 상세 정보를 조회합니다.")
-    @GetMapping("/{class_id}")
+    @GetMapping("/{classId}")
     public ApiResponse<?> getClassById(
             @PathVariable Long classId
     ) {
-        return null;
+        MentoringClassDetailResponse mentoringClass = mentoringClassService.findOneClass(classId);
+        return ApiResponse.of(
+                true,
+                HttpStatus.OK,
+                "멘토링 수업 상세 조회 성공",
+                mentoringClass
+        );
     }
 
     @Operation(summary = "멘토링 수업 등록", description = "멘토가 멘토링 수업을 등록합니다.")
+    @PreAuthorize("hasRole('MENTOR')")
     @PostMapping
     public ApiResponse<?> createClass(
-            @RequestBody MentoringClassCreateRequest request
-//            @CookieValue("memberId") Long memberId  // 쿠키에 저장될 멘토의 id
+            @RequestBody MentoringClassCreateRequest request,
+            Authentication authentication
     ) {
-        // TODO : 쿠키의 토큰에 저장된 key 에 맞게 수정 필요
-        Long memberId = 1L;
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getId();
+        log.info("memberId : {}", memberId);
+
         Long classId = mentoringClassService.createClass(memberId, request);
         return ApiResponse.of(
                 true,
@@ -67,6 +82,8 @@ public class MentoringClassController {
         );
     }
 
+    @Operation(summary = "멘토링 수업 수정", description = "멘토링 수업 정보를 수정합니다.")
+    @PreAuthorize("hasRole('MENTOR')")
     @PutMapping("/{class_id}")
     public ApiResponse<?> updateClass(
             @PathVariable Long classId
@@ -80,16 +97,18 @@ public class MentoringClassController {
         );
     }
 
+    @Operation(summary = "멘토링 수업 삭제", description = "멘토링 수업을 삭제합니다.")
+    @PreAuthorize("hasRole('MENTOR')")
     @DeleteMapping("/{class_id}")
     public ApiResponse<?> deleteClass(
             @PathVariable Long classId
     ) {
-        // TODO: 실제 생성 로직 구현
+        mentoringClassService.deleteClass(classId);
         return ApiResponse.of(
                 true,
                 HttpStatus.OK,
-                "멘토링 클래스 삭제 성공",
-                "생성된 클래스 ID"
+                "멘토링 수업 삭제 성공",
+                null
         );
     }
 }

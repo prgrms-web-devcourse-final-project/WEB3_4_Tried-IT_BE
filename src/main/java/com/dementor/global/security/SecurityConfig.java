@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -50,7 +51,12 @@ public class SecurityConfig {
 				.requestMatchers("/api/signup/**").permitAll()
 				.requestMatchers("/api/member/login").permitAll()
 				.requestMatchers("/api/authenticate").permitAll()
-				.requestMatchers("/swagger-ui/**").permitAll()
+
+				.requestMatchers(HttpMethod.GET, "/api/class").permitAll() // 모든 수업 조회 허용
+				.requestMatchers(HttpMethod.GET, "/api/class/{classId}").permitAll() // 특정 수업 조회 허용
+				.requestMatchers("/v3/api-docs/**").permitAll() // swagger 문서 허용
+
+				.requestMatchers("/swagger-ui/**").permitAll() // swagger 주소 허용
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/").permitAll()
 				.anyRequest().authenticated()

@@ -13,9 +13,11 @@ import com.dementor.domain.member.service.MemberService;
 import com.dementor.email.service.EmailService;
 import com.dementor.global.ApiResponse;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "회원가입", description = "회원가입")
 @RestController
 @RequestMapping("/api/signup")
 @RequiredArgsConstructor

@@ -18,8 +18,11 @@ import com.dementor.global.security.CustomUserDetails;
 import com.dementor.global.security.cookie.CookieUtil;
 import com.dementor.global.security.jwt.JwtTokenProvider;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
 
+@Tag(name = "로그인, 로그아웃", description = "로그인, 로그아웃")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
@@ -28,6 +31,7 @@ public class MemberAuthController {
 	private final AuthenticationManager authenticationManager;
 	private final CookieUtil cookieUtil;
 
+	@Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
 		try {
@@ -55,13 +59,22 @@ public class MemberAuthController {
 			headers.add(HttpHeaders.SET_COOKIE, cookieUtil.createJwtCookie(jwt).toString());
 
 
+			// this is from 김호남남
 			return ResponseEntity.ok()
 				.headers(headers)
-				.body(new LoginResponse(nickname, "로그인 성공"));
+				.body(LoginResponse.builder()
+					.nickname(nickname)
+					.message("로그인 성공")
+					.token(jwt)
+					.build());
 
 		} catch (AuthenticationException e) {
 			return ResponseEntity.badRequest()
-				.body(new LoginResponse(null, "로그인 실패: "));
+				.body(LoginResponse.builder()
+					.nickname(null)
+					.message("로그인 실패: " + e.getMessage())
+					.token(null)
+					.build());
 		}
 	}
 
@@ -75,6 +88,6 @@ public class MemberAuthController {
 
 		return ResponseEntity.ok()
 			.headers(headers)
-			.body(new LoginResponse(null, "로그아웃 성공"));
+			.body(new LoginResponse(null, null, "로그아웃 성공", null));
 	}
 }

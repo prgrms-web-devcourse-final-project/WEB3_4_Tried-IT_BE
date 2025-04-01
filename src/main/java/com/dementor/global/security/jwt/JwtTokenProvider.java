@@ -14,9 +14,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
+import com.dementor.global.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -89,9 +89,16 @@ public class JwtTokenProvider implements InitializingBean {
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 
-		User principal = new User(claims.getSubject(),"",authorities);
+		// this is from 김호남남
+		CustomUserDetails principal = new CustomUserDetails(
+			claims.get("memberId", Long.class),
+			claims.getSubject(),
+			"",  // password는 JWT 토큰에 저장하지 않음
+			claims.get("nickname", String.class),
+			authorities
+		);
 
-		return new UsernamePasswordAuthenticationToken(principal,token,authorities);
+		return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 	}
 
 	//토큰 유효성 검증

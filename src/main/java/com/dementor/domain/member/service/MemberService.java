@@ -3,6 +3,7 @@ package com.dementor.domain.member.service;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dementor.domain.member.dto.request.SignupRequest;
 import com.dementor.domain.member.entity.Member;
@@ -22,7 +23,12 @@ public class MemberService {
 
 	private final PasswordEncoder passwordEncoder;
 
+	@Transactional
 	public void createMember(SignupRequest signupRequest) {
+
+		memberRepository.findByEmail(signupRequest.getEmail()).ifPresent(member -> {
+			throw new MemberException(MemberErrorCode.DUPLICATE_EMAIL);
+		});
 
 		//redis 에 저장된 code 가져오기
 		String storedCode = redisTemplate.opsForValue().get("email:" + signupRequest.getEmail());
