@@ -162,14 +162,14 @@ public class ChatService {
     @Transactional(readOnly = true)
     public ChatMessageSliceDto getMessages(Long chatRoomId, Long beforeMessageId, int size) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + chatRoomId)); // ✅ 예외 메시지 개선
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + chatRoomId)); // 예외 메시지 개선
 
         List<ChatMessage> messages;
 
         if (beforeMessageId != null) {
             messages = chatMessageRepository.findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(chatRoomId, beforeMessageId);
         } else {
-            messages = chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId); // ✅ 최신 메시지 size개 조회
+            messages = chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId); // 최신 메시지 size개 조회
         }
 
         List<ChatMessageResponseDto> dtoList = messages.stream()
@@ -202,17 +202,14 @@ public class ChatService {
                     .findTop1ByChatRoom_ChatRoomIdOrderByCreatedAtDesc(room.getChatRoomId())
                     .stream().findFirst().orElse(null);
 
-            // 2. 닉네임 매핑 로직✅
+            // 2. 닉네임 매핑 로직 (연관된 Member에서 닉네임 직접 조회)
             String nickname;
             if (room.getRoomType() == RoomType.ADMIN_CHAT) {
                 nickname = "관리자";
             } else {
-                // 채팅방의 멤버 ID가 상대방인지 확인
                 Long opponentId = !room.getMemberId().equals(memberId) ? room.getMemberId() : null;
-
-                // 예외 처리: 혹시라도 null이면 "알 수 없음" 등 기본 닉네임
                 nickname = opponentId != null
-                        ? memberService.getNicknameById(opponentId) // Member 도메인에 구현 필요
+                        ? room.getMemberNickname() //
                         : "알 수 없음";
             }
 
@@ -220,15 +217,17 @@ public class ChatService {
                     room.getChatRoomId(),
                     room.getApplymentId(),
                     room.getRoomType(),
-                    nickname, // 동적으로 매핑된 상대 닉네임
+                    nickname,
                     lastMessage != null ? lastMessage.getContent() : null,
                     lastMessage != null ? lastMessage.getCreatedAt() : null
             );
         }).toList();
     }
 
-
 }
+
+
+
 
 
 //**멤버 서비스에   이부분 추가
