@@ -2,7 +2,7 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
-import com.dementor.domain.chat.service.ChatService;
+import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.global.jwt.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class WebSocketController {
 
-    private final ChatService chatService;
+    private final ChatRoomService chatRoomService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final JwtParser jwtParser;
 
@@ -24,7 +24,7 @@ public class WebSocketController {
             Long memberId = jwtParser.getMemberId(token); //✅
             String nickname = jwtParser.getNickname(token);
 
-            ChatMessageResponseDto response = chatService.handleMessage(dto, memberId, nickname);
+            ChatMessageResponseDto response = chatRoomService.handleMessage(dto, memberId, nickname);
             messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getApplymentId(), response);
         }
         // 웹소켓 연결시  예외처리(JWT 인증 실패 등의 예외가 발생해도 서버가 죽지 않도록)
