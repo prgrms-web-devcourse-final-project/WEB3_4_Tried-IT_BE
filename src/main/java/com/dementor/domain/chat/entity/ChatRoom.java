@@ -38,13 +38,18 @@ public class ChatRoom {
     private RoomType roomType; // MENTORING_CHAT, ADMIN_CHAT
 
 
-    // ✅ 추가: 채팅방에 연결된 멤버 (생성자 or 참여자 등)
+    //  연관관계 설정으로 Member 엔티티 참조
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // memberId 반환
+    // memberId 가져오기
     public Long getMemberId() {
         return member != null ? member.getId() : null;
-        }
+    }
+
+    // 닉네임 가져오기 (선택적)
+    public String getMemberNickname() {
+        return member != null ? member.getNickname() : "알 수 없음";
+    }
     }
