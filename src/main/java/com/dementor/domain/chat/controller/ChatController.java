@@ -23,6 +23,8 @@ public class ChatController {
     private final ChatMessageService chatMessageService;
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CookieUtil cookieUtil;
+
 
 
     //채팅방 생성
@@ -36,13 +38,13 @@ public class ChatController {
 //        Long myId = jwtTokenProvider.getMemberId(token);
 //        Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId);
 
-        // ✅ 1. 쿠키에서 JWT 토큰 추출
-        String token = CookieUtil.getTokenFromCookie(request);
+        // 1.  access_token 쿠키에서 JWT문자열 추출
+        String token = cookieUtil.getTokenFromCookie(request);
 
-        // ✅ 2. 토큰에서 사용자 ID 추출
+        // 2. 토큰에서 사용자 ID 추출
         Long myId = jwtTokenProvider.getMemberId(token);
 
-        // ✅ 3. 채팅방 생성 로직
+        // 3. 채팅방 생성 로직
         Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId);
         return ResponseEntity.ok(chatRoomId);
     }

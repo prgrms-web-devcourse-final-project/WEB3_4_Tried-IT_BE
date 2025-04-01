@@ -175,16 +175,21 @@ public class ChatRoomService {
                     .stream().findFirst().orElse(null);
 
             // 닉네임 매핑 로직
-            String nickname;
-            if (room.getRoomType() == RoomType.ADMIN_CHAT) {
-                nickname = "관리자";
-            } else {
-                Long opponentId = !room.getMemberId().equals(memberId) ? room.getMemberId() : null;
-                nickname = opponentId != null
-                        ? room.getMemberNickname() // 연관된 Member로부터 직접 닉네임 조회
-                        : "알 수 없음";
-            }
+//            String nickname;
+//            if (room.getRoomType() == RoomType.ADMIN_CHAT) {
+//                nickname = "관리자";
+//            } else {
+//                Long opponentId = !room.getMemberId().equals(memberId) ? room.getMemberId() : null;
+//                nickname = opponentId != null
+//                        ? room.getMemberNickname() // 연관된 Member로부터 직접 닉네임 조회
+//                        : "알 수 없음";
+//            }
+            // 2. 닉네임 매핑
+            String nickname = room.getRoomType() == RoomType.ADMIN_CHAT
+                    ? "관리자"
+                    : room.getMemberNickname(); // 연관된 Member에서 직접 닉네임 조회
 
+            // 3. 응답 DTO 생성     nickname = "관리자"인지 room.getMemberNickname()인지 비즈니스로직 섞여있어서
             return new ChatRoomResponseDto(
                     room.getChatRoomId(),
                     room.getApplymentId(),
