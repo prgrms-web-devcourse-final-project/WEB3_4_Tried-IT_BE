@@ -132,33 +132,33 @@ public class ChatRoomService {
         return chatRoom.getChatRoomId();
     }
 
-    //채팅방 생성 메서드
-@Transactional
-public Long createChatRoom(Long applymentId, Long myId) {
-    Apply apply = applyRepository.findById(applymentId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 신청이 존재하지 않습니다."));
-
-    // 신청한 사람 (멘티)
-    Member mentee = apply.getMember();
-
-    // MentoringClass.member (멘토)는 접근할 수 없으므로,
-    // 내가 멘티가 아니면 상대방은 멘티라고 가정
-    if (mentee.getId().equals(myId)) {
-        throw new IllegalArgumentException("현재 구조에선 멘토인 경우 상대방 정보 확인이 불가합니다.");
-    }
-
-    // 상대방 = 신청자(멘티)
-    Member opponent = mentee;
-
-    ChatRoom chatRoom = new ChatRoom();
-    chatRoom.setApplymentId(applymentId);
-    chatRoom.setRoomType(RoomType.MENTORING_CHAT);
-    chatRoom.setMember(opponent); // 항상 상대방만 저장
-
-    chatRoomRepository.save(chatRoom);
-    return chatRoom.getChatRoomId();
-}
-
+//    //채팅방 생성 메서드
+//@Transactional
+//public Long createChatRoom(Long applymentId, Long myId) {
+//    Apply apply = applyRepository.findById(applymentId)
+//            .orElseThrow(() -> new IllegalArgumentException("해당 신청이 존재하지 않습니다."));
+//
+//    // 신청한 사람 (멘티)
+//    Member mentee = apply.getMember();
+//
+//    // MentoringClass.member (멘토)는 접근할 수 없으므로,
+//    // 내가 멘티가 아니면 상대방은 멘티라고 가정
+//    if (mentee.getId().equals(myId)) {
+//        throw new IllegalArgumentException("현재 구조에선 멘토인 경우 상대방 정보 확인이 불가합니다.");
+//    }
+//
+//    // 상대방 = 신청자(멘티)
+//    Member opponent = mentee;
+//
+//    ChatRoom chatRoom = new ChatRoom();
+//    chatRoom.setApplymentId(applymentId);
+//    chatRoom.setRoomType(RoomType.MENTORING_CHAT);
+//    chatRoom.setMember(opponent); // 항상 상대방만 저장
+//
+//    chatRoomRepository.save(chatRoom);
+//    return chatRoom.getChatRoomId();
+//}
+//
 
 
 
