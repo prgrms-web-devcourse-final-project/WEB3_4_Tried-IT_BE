@@ -33,7 +33,7 @@ public class MentoringClass extends BaseEntity {
     private List<Schedule> schedules = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "mentor_id")
+    @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
 
     public void updateTitle(String title) {
@@ -49,7 +49,8 @@ public class MentoringClass extends BaseEntity {
     }
 
 
+    // 멘토의 member 리턴 (ChatRoomService에서 사용 가능)
     public Member getMember() {
-        return member;
+        return mentor != null ? mentor.getMember() : null;
     }
 }
