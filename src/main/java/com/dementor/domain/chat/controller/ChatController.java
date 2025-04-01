@@ -6,7 +6,8 @@ import com.dementor.domain.chat.service.ChatMessageService;
 
 import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.global.security.jwt.JwtTokenProvider;
-import io.jsonwebtoken.JwtParser;
+import com.dementor.global.security.cookie.CookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,20 @@ public class ChatController {
     @PostMapping("/room")
     public ResponseEntity<Long> createChatRoom(
             @RequestParam Long applymentId,
-            @RequestHeader("Authorization") String token
+            HttpServletRequest request
+//            @RequestHeader("Authorization") String token
+
     ) {
+//        Long myId = jwtTokenProvider.getMemberId(token);
+//        Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId);
+
+        // ✅ 1. 쿠키에서 JWT 토큰 추출
+        String token = CookieUtil.getTokenFromCookie(request);
+
+        // ✅ 2. 토큰에서 사용자 ID 추출
         Long myId = jwtTokenProvider.getMemberId(token);
+
+        // ✅ 3. 채팅방 생성 로직
         Long chatRoomId = chatRoomService.createChatRoom(applymentId, myId);
         return ResponseEntity.ok(chatRoomId);
     }
