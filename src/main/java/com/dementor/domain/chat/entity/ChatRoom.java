@@ -1,5 +1,6 @@
 package com.dementor.domain.chat.entity;
 
+import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -42,6 +43,12 @@ public class ChatRoom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    // 관리자(admin_id)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
 
     // memberId 가져오기
     public Long getMemberId() {
