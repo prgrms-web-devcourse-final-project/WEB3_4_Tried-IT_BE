@@ -3,6 +3,9 @@ package com.dementor.domain.apply.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import com.dementor.domain.chat.entity.ChatRoom;
+import com.dementor.domain.chat.entity.RoomType;
+import com.dementor.domain.chat.service.ChatRoomService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,9 @@ public class ApplyService {
 	private final MentoringClassRepository mentoringClassRepository;
 	private final MemberRepository memberRepository;
 
+	private final ChatRoomService chatRoomService; //
+
+
 	//멘토링 신청
 	@Transactional
 	public ApplyIdResponse createApply(ApplyCreateRequest req, Long memberId) {
@@ -70,6 +76,15 @@ public class ApplyService {
 
 		Apply savedApply = applyRepository.save(apply);
 
+
+
+		//---------------챗 영역---------------------
+		//  멘토, 멘티 memberId 추출
+		Member mentor = mentoringClass.getMember();
+		Member mentee = apply.getMember();
+		chatRoomService.createMentoringChatRooms(savedApply.getId(), mentor, mentee);
+
+//		return ApplyResponse.GetApplyId.from(savedApply);
 		return ApplyIdResponse.from(savedApply);
 	}
 
