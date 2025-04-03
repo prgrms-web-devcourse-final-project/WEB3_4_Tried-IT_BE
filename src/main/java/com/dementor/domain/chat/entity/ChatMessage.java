@@ -21,29 +21,50 @@ public class ChatMessage {
     private ChatRoom chatRoom;
 
 
-    @Enumerated(EnumType.STRING) // ENTER, MESSAGE, EXIT
+//    @Enumerated(EnumType.STRING) // ENTER, MESSAGE, EXIT
+//    @Column(nullable = false)
+//    private MessageType type;
+
+    // 메시지 타입: ENTER, MESSAGE, EXIT
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MessageType type;
+    private MessageType messageType;
 
-
+    // 발신자 ID (member 또는 admin)
     @Column(nullable = false)
-    private Long memberId;
+    private Long senderId;
 
-    @Column
-    private Long adminId; // 추후 연동 대비
-
+    // 발신자 유형: MEMBER / ADMIN
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String nickname;
+    private SenderType senderType;
+
+    //메시지 본문
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    // 생성일시
+    @Column(nullable = false)
+    private LocalDateTime sentAt = LocalDateTime.now();
+
+//   -> *senderId로
+//    @Column(nullable = false)
+//    private Long memberId;
 //
+//    @Column
+//    private Long adminId; // 추후 연동 대비
+
+
+//    @Column(nullable = false)
+//    private String nickname;   - *닉네임 동적으로 붙일것
+//
+
 //    @Enumerated(EnumType.STRING)
 //    @Column(nullable = false)
 //    private SenderType senderType; // "MEMBER" 또는 "ADMIN"
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+
 
 
 

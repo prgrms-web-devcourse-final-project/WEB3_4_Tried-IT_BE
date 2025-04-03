@@ -1,8 +1,8 @@
-package com.dementor.domain.chat.entity;//package com.dementor.domain.chat.entity;
-//
-//
-//// 관리자 채팅시
-//public enum SenderType {
-//    MEMBER,
-//    ADMIN
-//}
+package com.dementor.domain.chat.entity;
+
+
+public enum SenderType {
+    MEMBER,
+    ADMIN,
+    System  //메시지타입 enter, exit
+}

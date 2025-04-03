@@ -11,8 +11,9 @@ import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-
+@Setter// 멤버id ,닉네임 세터 필요(테스트시)
 @Entity
 @Builder
 @AllArgsConstructor
@@ -42,6 +43,7 @@ public class Member extends BaseEntity {
 	public Member() {
 
 	}
+
 
 }
 

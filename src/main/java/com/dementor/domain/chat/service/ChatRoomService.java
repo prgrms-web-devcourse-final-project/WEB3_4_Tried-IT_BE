@@ -44,17 +44,17 @@ public class ChatRoomService {
     @Transactional
     public void createMentoringChatRooms(Long applymentId, Member mentor, Member mentee) {
         ChatRoom mentorRoom = new ChatRoom();
-        mentorRoom.setApplymentId(applymentId);
+//        mentorRoom.setApplymentId(applymentId);
         mentorRoom.setRoomType(RoomType.MENTORING_CHAT);
         mentorRoom.setMember(mentor); //사용자 멘토
-        mentorRoom.setMember(mentee); // 상대방 사용자 멘티 저장
+        mentorRoom.setTargetNickname(mentee.getNickname()); // 상대방 사용자 멘티 저장
         chatRoomRepository.save(mentorRoom);
 
         ChatRoom menteeRoom = new ChatRoom();
-        menteeRoom.setApplymentId(applymentId);
+//        menteeRoom.setApplymentId(applymentId);
         menteeRoom.setRoomType(RoomType.MENTORING_CHAT);
         menteeRoom.setMember(mentee);  // 사용자 멘티
-        menteeRoom.setMember(mentor); // 상대방 사용자 멘토 저장
+        menteeRoom.setTargetNickname(mentor.getNickname()); // 상대방 사용자 멘토 저장
         chatRoomRepository.save(menteeRoom);
     }
 
@@ -91,8 +91,8 @@ public class ChatRoomService {
         return rooms.stream().map(room -> {
             // 상대방 닉네임 구분 처리
             String nickname = room.getRoomType() == RoomType.ADMIN_CHAT
-                    ? "관리자"
-                    : room.getMember().getNickname(); // 상대방의 닉네임 (DB 조회)
+                    ? "관리자"  //admin 챗이면 상대방(관리자) 닉네임은 관리자
+                    : room.getMember().getNickname(); // 어드민 챗 아니면 상대방(멤버)의 닉네임 (DB 조회)
 
             return toDto(room, nickname);
         }).toList();
@@ -120,11 +120,13 @@ public class ChatRoomService {
 
         return new ChatRoomResponseDto(
                 room.getChatRoomId(),
-                room.getApplymentId(),
+//                room.getApplymentId(),
                 room.getRoomType(),
                 nickname,
                 lastMessage != null ? lastMessage.getContent() : null,
-                lastMessage != null ? lastMessage.getCreatedAt() : null
+                lastMessage != null ? lastMessage.getCreatedAt() : null,
+                room.getTargetNickname()
+
         );
     }
 }

@@ -21,13 +21,12 @@ public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long chatRoomId;
-
-    @Column
-    private Long applymentId;  // 멘토링 신청 ID
+//
+//    @Column
+//    private Long applymentId;  // 멘토링 신청 ID
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
     private List<ChatMessage> messages = new ArrayList<>();
-
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -48,6 +47,10 @@ public class ChatRoom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id")
     private Admin admin;
+
+    // 상대방 닉네임 추가
+    @Column(name = "target_nickname")
+    private String targetNickname;
 
 
     // memberId 가져오기
