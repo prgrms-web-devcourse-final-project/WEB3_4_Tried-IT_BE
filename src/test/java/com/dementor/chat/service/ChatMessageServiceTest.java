@@ -1,122 +1,110 @@
 package com.dementor.chat.service;
 
+
+import com.dementor.domain.admin.repository.AdminRepository;
+import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.entity.ChatMessage;
 import com.dementor.domain.chat.entity.ChatRoom;
 import com.dementor.domain.chat.entity.MessageType;
-import com.dementor.domain.chat.entity.RoomType;
+import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 import com.dementor.domain.chat.service.ChatMessageService;
 import com.dementor.domain.member.entity.Member;
-import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class ChatMessageServiceTest {
+public class ChatMessageServiceTest {
 
-    @Autowired
-    ChatMessageRepository chatMessageRepository;
+    private ChatMessageRepository chatMessageRepository;
+    private ChatRoomRepository chatRoomRepository;
+    private MemberRepository memberRepository;
+    private AdminRepository adminRepository;
 
-    @Autowired
-    ChatRoomRepository chatRoomRepository;
-
-    @Autowired
-    MemberRepository memberRepository;
-
-    @Autowired
-    ChatMessageService chatMessageService;
-
-    Member sender;
-    ChatRoom mentoringRoom;
-    ChatRoom adminRoom;
+    private ChatMessageService chatMessageService;
 
     @BeforeEach
     void setUp() {
-        // 고유 이메일과 닉네임 생성
-        String uuid = UUID.randomUUID().toString();
+        chatMessageRepository = mock(ChatMessageRepository.class);
+        chatRoomRepository = mock(ChatRoomRepository.class);
+        memberRepository = mock(MemberRepository.class);
+        adminRepository = mock(AdminRepository.class);
 
-        sender = Member.builder()
-                .email("sender_" + uuid + "@example.com")
-                .password("encodedPassword")
-                .nickname("닉네임_" + uuid)
-                .name("테스트유저")
-                .userRole(UserRole.MENTEE)
+        chatMessageService = new ChatMessageService(chatMessageRepository, chatRoomRepository, memberRepository, adminRepository);
+    }
+
+    @Test
+    void 멤버_메시지_저장_테스트() {
+        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
+        Member member = Member.builder().id(100L).nickname("사용자A").build();
+
+        ChatMessageSendDto dto = new ChatMessageSendDto();
+        dto.setChatRoomId(1L);
+        dto.setType(MessageType.MESSAGE);
+        dto.setMessage("안녕하세요!");
+
+        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(memberRepository.findById(100L)).thenReturn(Optional.of(member));
+
+        ChatMessageResponseDto result = chatMessageService.handleMessage(dto, 100L, SenderType.MEMBER);
+
+        assertThat(result.getMessage()).isEqualTo("안녕하세요!");
+        assertThat(result.getNickname()).isEqualTo("사용자A");
+        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
+    }
+
+    @Test
+    void 관리자_메시지_저장_테스트() {
+        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
+
+        ChatMessageSendDto dto = new ChatMessageSendDto();
+        dto.setChatRoomId(1L);
+        dto.setType(MessageType.MESSAGE);
+        dto.setMessage("관리자입니다");
+
+        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
+
+        ChatMessageResponseDto result = chatMessageService.handleMessage(dto, 999L, SenderType.ADMIN);
+
+        assertThat(result.getMessage()).isEqualTo("관리자입니다");
+        assertThat(result.getNickname()).isEqualTo("관리자");
+        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
+    }
+
+    @Test
+    void 메시지_조회_테스트() {
+        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
+        Member member = Member.builder().id(100L).nickname("멘티").build();
+
+        ChatMessage msg = ChatMessage.builder()
+                .chatMessageId(10L)
+                .chatRoom(room)
+                .senderId(100L)
+                .senderType(SenderType.MEMBER)
+                .messageType(MessageType.MESSAGE)
+                .content("테스트 메시지")
+                .sentAt(LocalDateTime.now())
                 .build();
-        sender = memberRepository.save(sender);
 
-        // 멘토링 채팅방
-        mentoringRoom = new ChatRoom();
-        mentoringRoom.setApplymentId(200L);
-        mentoringRoom.setRoomType(RoomType.MENTORING_CHAT);
-        mentoringRoom.setMember(sender);
-        mentoringRoom = chatRoomRepository.save(mentoringRoom);
+        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(1L)).thenReturn(List.of(msg));
+        when(memberRepository.findById(100L)).thenReturn(Optional.of(member));
 
-        // 관리자 채팅방
-        adminRoom = new ChatRoom();
-        adminRoom.setRoomType(RoomType.ADMIN_CHAT);
-        adminRoom.setMember(sender); // 실제론 관리자와 연결되지만 테스트에선 sender로 사용
-        adminRoom = chatRoomRepository.save(adminRoom);
-    }
+        ChatMessageSliceDto result = chatMessageService.getMessages(1L, null, 20);
 
-    @AfterEach
-    void tearDown() {
-        chatMessageRepository.deleteAll();
-        chatRoomRepository.deleteAll();
-        memberRepository.deleteAll();
-    }
-
-    @Test
-    void 멘토링_메시지_저장_조회_성공() {
-        // given
-        ChatMessageSendDto dto = new ChatMessageSendDto(
-                MessageType.MESSAGE,
-                mentoringRoom.getApplymentId(),
-                "안녕하세요 멘토님"
-        );
-
-        // when
-        chatMessageService.handleMessage(dto, sender.getId(), sender.getNickname());
-
-        // then
-        ChatMessageSliceDto result = chatMessageService.getMessages(
-                mentoringRoom.getChatRoomId(), null, 20
-        );
-
-        assertEquals(1, result.getMessages().size());
-        assertEquals("안녕하세요 멘토님", result.getMessages().get(0).getMessage());
-        assertEquals(sender.getNickname(), result.getMessages().get(0).getNickname());
-    }
-
-    @Test
-    void 관리자_메시지_저장_조회_성공() {
-        // given
-        ChatMessageSendDto dto = new ChatMessageSendDto(
-                MessageType.MESSAGE,
-                null,
-                "관리자님 궁금한 게 있어요!"
-        );
-
-        // when
-        chatMessageService.handleMessage(dto, sender.getId(), sender.getNickname());
-
-        // then
-        ChatMessageSliceDto result = chatMessageService.getMessages(
-                adminRoom.getChatRoomId(), null, 20
-        );
-
-        assertEquals(1, result.getMessages().size());
-        assertEquals("관리자님 궁금한 게 있어요!", result.getMessages().get(0).getMessage());
-        assertEquals(sender.getNickname(), result.getMessages().get(0).getNickname());
+        assertThat(result.getMessages()).hasSize(1);
+        assertThat(result.getMessages().get(0).getMessage()).isEqualTo("테스트 메시지");
+        assertThat(result.getMessages().get(0).getNickname()).isEqualTo("멘티");
     }
 }
+
