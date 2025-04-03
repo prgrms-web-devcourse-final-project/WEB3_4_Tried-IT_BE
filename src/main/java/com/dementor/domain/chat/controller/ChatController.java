@@ -83,24 +83,6 @@ public class ChatController {
 
 
 
-
-
-
-
-
-
-//    // 커서 기반 메시지 조회 (최신 → 오래된 순, 무한스크롤)
-//    @GetMapping("/room/{chatRoomId}/messages")
-//    public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(
-//            @PathVariable Long chatRoomId,
-//            @RequestParam(required = false) Long beforeMessageId,
-//            @RequestParam(defaultValue = "20") int size
-//    ) {
-//        return ResponseEntity.ok(chatMessageService.getMessages(chatRoomId, beforeMessageId, size));
-//    }
-
-
-
 //--------------------------------------------------
 //    //  예전 전체 메시지 조회 API (선택적으로 유지 가능)
 //    @GetMapping("/{applymentId}")
