@@ -25,13 +25,22 @@ public class WebSocketController {
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
         try {
-            // 1. JWT에서 memberId 추출
-            Long memberId = jwtTokenProvider.getMemberId(token);
+            Long senderId;
+            SenderType senderType;
 
-            // 3. 서비스 호출
-            ChatMessageResponseDto response = chatMessageService.handleMessage(dto, memberId, SenderType.MEMBER);
+            // 관리자 또는 멤버 분기
+            if (jwtTokenProvider.isAdminToken(token)) {
+                senderId = jwtTokenProvider.getAdminId(token);
+                senderType = SenderType.ADMIN;
+            } else {
+                senderId = jwtTokenProvider.getMemberId(token);
+                senderType = SenderType.MEMBER;
+            }
 
-            // 4. 구독자에게 메시지 전송
+            // 메시지 처리
+            ChatMessageResponseDto response = chatMessageService.handleMessage(dto, senderId, senderType);
+
+            // 구독자에게 메시지 전송
             messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getChatRoomId(), response);
 
         } catch (Exception e) {

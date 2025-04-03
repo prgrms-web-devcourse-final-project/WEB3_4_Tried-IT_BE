@@ -203,6 +203,35 @@ public class JwtTokenProvider implements InitializingBean {
 		return claims.get("memberId", Long.class);
 	}
 
+
+	// 관리자 토큰 여부 판별
+	public boolean isAdminToken(String token) {
+		try {
+			Claims claims = Jwts.parserBuilder()
+					.setSigningKey(key)
+					.build()
+					.parseClaimsJws(token)
+					.getBody();
+
+			return claims.get("adminId", Long.class) != null;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// 관리자 admin_id 추출
+	public Long getAdminId(String token) {
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+
+		return claims.get("adminId", Long.class);
+	}
+
+
+
 //	// JWT에서 nickname 꺼내기
 //	public String getNickname(String token) {
 //		Claims claims = Jwts.parserBuilder()
