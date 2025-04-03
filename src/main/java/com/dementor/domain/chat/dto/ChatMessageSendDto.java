@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChatMessageSendDto {  //입력 DTO(send용) 클라이언트->서버
 
-    private MessageType type;  //
-    private Long chatRoomId;  // 어떤 채팅방인지
+    private MessageType type;  // ENTER / MESSAGE / EXIT
+    private Long chatRoomId;
     private String message;    // 메시지 본문
 }

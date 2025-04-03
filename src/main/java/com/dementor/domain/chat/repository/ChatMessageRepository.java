@@ -15,7 +15,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     List<ChatMessage> findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(Long chatRoomId);
     //채팅방 처음 들어올때 20개조회
 
-    List<ChatMessage> findTop1ByChatRoom_ChatRoomIdOrderByCreatedAtDesc(Long chatRoomId);
-    // 채팅방 목록 마지막 메시지용 - 가장 최근 메시지 1개
+    List<ChatMessage> findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(Long chatRoomId);
+    // 채팅방 목록용 마지막 메시지 미리보기 - 가장 최근 메시지 1개
 
 }

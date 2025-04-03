@@ -113,7 +113,7 @@ public class ChatRoomService {
     // 공통 DTO
     private ChatRoomResponseDto toDto(ChatRoom room, String nickname) {
         List<ChatMessage> messages = chatMessageRepository
-                .findTop1ByChatRoom_ChatRoomIdOrderByCreatedAtDesc(room.getChatRoomId());
+                .findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(room.getChatRoomId());
 
         ChatMessage lastMessage = messages.isEmpty() ? null : messages.get(0);
 
@@ -124,7 +124,7 @@ public class ChatRoomService {
                 room.getRoomType(),
                 nickname,
                 lastMessage != null ? lastMessage.getContent() : null,
-                lastMessage != null ? lastMessage.getCreatedAt() : null,
+                lastMessage != null ? lastMessage.getSentAt() : null,
                 room.getTargetNickname()
 
         );
