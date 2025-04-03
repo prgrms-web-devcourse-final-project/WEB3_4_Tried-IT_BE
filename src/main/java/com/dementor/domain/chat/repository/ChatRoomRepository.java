@@ -14,7 +14,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     // 사용자 기준 채팅방 목록조회
 
 
-    List<ChatRoom> findByAdmin_AdminId(Long adminId);
+    List<ChatRoom> findByAdmin_Id(Long adminId);
    // 관리자 기준 채팅방 목록 조회
 
 }

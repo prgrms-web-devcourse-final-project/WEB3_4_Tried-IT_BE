@@ -42,7 +42,7 @@ public class ChatRoomService {
 
     //  멘토 & 멘티 각각에게 채팅방 생성
     @Transactional
-    public void createMentoringChatRooms(Long applymentId, Member mentor, Member mentee) {
+    public void createMentoringChatRooms(Member mentor, Member mentee) {
         ChatRoom mentorRoom = new ChatRoom();
 //        mentorRoom.setApplymentId(applymentId);
         mentorRoom.setRoomType(RoomType.MENTORING_CHAT);
@@ -101,7 +101,7 @@ public class ChatRoomService {
     // 관리자 기준 채팅방 조회
     @Transactional(readOnly = true)
     public List<ChatRoomResponseDto> getAllMyAdminChatRooms(Long adminId) {
-        List<ChatRoom> rooms = chatRoomRepository.findByAdmin_AdminId(adminId);
+        List<ChatRoom> rooms = chatRoomRepository.findByAdmin_Id(adminId);
 
         return rooms.stream().map(room -> {
             // 상대방 닉네임: 항상 Member 기준

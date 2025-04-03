@@ -82,7 +82,7 @@ public class ApplyService {
 		//  멘토, 멘티 memberId 추출
 		Member mentor = mentoringClass.getMember();
 		Member mentee = apply.getMember();
-		chatRoomService.createMentoringChatRooms(savedApply.getId(), mentor, mentee);
+		chatRoomService.createMentoringChatRooms(mentor, mentee);
 
 //		return ApplyResponse.GetApplyId.from(savedApply);
 		return ApplyIdResponse.from(savedApply);

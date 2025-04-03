@@ -179,7 +179,7 @@ public class ChatRoomServiceTest {
         Member mentor = Member.builder().id(1L).nickname("멘토").build();
         Member mentee = Member.builder().id(2L).nickname("멘티").build();
 
-        chatRoomService.createMentoringChatRooms(1L, mentor, mentee);
+        chatRoomService.createMentoringChatRooms( mentor, mentee);
 
         ArgumentCaptor<ChatRoom> captor = ArgumentCaptor.forClass(ChatRoom.class);
         verify(chatRoomRepository, times(2)).save(captor.capture());
@@ -236,7 +236,7 @@ public class ChatRoomServiceTest {
                 .member(member)
                 .build();
 
-        when(chatRoomRepository.findByAdmin_AdminId(100L)).thenReturn(List.of(room));
+        when(chatRoomRepository.findByAdmin_Id(100L)).thenReturn(List.of(room));
         when(chatMessageRepository.findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(1L)).thenReturn(Collections.emptyList());
 
         List<ChatRoomResponseDto> result = chatRoomService.getAllMyAdminChatRooms(100L);
