@@ -3,9 +3,7 @@ package com.dementor.domain.chat.entity;
 import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.member.entity.Member;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +14,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ChatRoom {
 
     @Id
@@ -59,7 +59,7 @@ public class ChatRoom {
     }
 
     // 닉네임 가져오기 (선택적)
-    public String getMemberNickname() {
-        return member != null ? member.getNickname() : "알 수 없음";
-     }
+//    public String getMemberNickname() {
+//        return member != null ? member.getNickname() : "알 수 없음";
+//     }
     }
