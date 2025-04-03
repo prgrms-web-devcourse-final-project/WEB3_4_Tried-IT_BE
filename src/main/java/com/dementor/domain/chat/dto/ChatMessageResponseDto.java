@@ -2,11 +2,13 @@ package com.dementor.domain.chat.dto;
 
 import com.dementor.domain.chat.entity.MessageType;
 //import com.dementor.domain.chat.entity.SenderType;
+import com.dementor.domain.chat.entity.SenderType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Getter
@@ -17,10 +19,10 @@ public class ChatMessageResponseDto {  //구독자에게 브로드캐스트할 �
                                         // 서버->구독자
 
     private MessageType type;         // ENTER(00님이 입장), MESSAGE(실제 채팅),  EXIT(00님 퇴장)
-    private Long applymentId;
-    private Long memberId;
-    private String nickname;
-//    private SenderType senderType; // MEMBER 또는 ADMIN
+    private Long chatRoomId;
+    private Long senderId;
+//    private String nickname;
+    private SenderType senderType; // MEMBER /admin/system
     private String message;
     private ZonedDateTime sentAt;  // 엔티티에서는 local, db는 타임존 개념없이 DATETIME/TIMESTAMP 타입으로만 저장됨
 
