@@ -59,6 +59,12 @@ dependencies {
 
     // spring hateoas
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+
+
+    //WebSocket + STOMP 관련
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework:spring-messaging'
+
 }
 
 tasks.named('test') {

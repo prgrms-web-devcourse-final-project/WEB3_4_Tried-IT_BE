@@ -1,5 +1,6 @@
 package com.dementor.domain.mentoringclass.entity;
 
+import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.global.base.BaseEntity;
 import jakarta.persistence.*;
@@ -32,7 +33,7 @@ public class MentoringClass extends BaseEntity {
     private List<Schedule> schedules = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "mentor_id")
+    @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
 
     public void updateTitle(String title) {
@@ -47,4 +48,9 @@ public class MentoringClass extends BaseEntity {
         this.price = price;
     }
 
+
+    // 멘토의 member 리턴 (ChatRoomService에서 사용 가능)
+    public Member getMember() {
+        return mentor != null ? mentor.getMember() : null;
+    }
 }
