@@ -68,6 +68,16 @@ public class ChatController {
     }
 
 
+    // 채팅방 메시지 조회 API (커서 기반, 최신순 → 오래된순)
+    @GetMapping("/room/{chatRoomId}/messages")
+    public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(
+            @PathVariable Long chatRoomId,
+            @RequestParam(required = false) Long beforeMessageId,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(chatMessageService.getMessages(chatRoomId, beforeMessageId, size));
+    }
+
 }
 
 

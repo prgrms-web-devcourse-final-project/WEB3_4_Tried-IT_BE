@@ -2,6 +2,7 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
+import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.service.ChatMessageService;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.repository.MemberRepository;
@@ -27,13 +28,8 @@ public class WebSocketController {
             // 1. JWT에서 memberId 추출
             Long memberId = jwtTokenProvider.getMemberId(token);
 
-            // 2. DB에서 Member 조회 → nickname 얻기
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            String nickname = member.getNickname();
-
             // 3. 서비스 호출
-            ChatMessageResponseDto response = chatMessageService.handleMessage(dto, memberId, nickname);
+            ChatMessageResponseDto response = chatMessageService.handleMessage(dto, memberId, SenderType.MEMBER);
 
             // 4. 구독자에게 메시지 전송
             messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getChatRoomId(), response);
