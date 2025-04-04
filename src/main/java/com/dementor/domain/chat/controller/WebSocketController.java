@@ -10,6 +10,7 @@ import com.dementor.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 
@@ -23,6 +24,7 @@ public class WebSocketController {
     private final MemberRepository memberRepository;      // 닉네임 조회용
 
     @MessageMapping("/chat/message")
+
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
         try {
             Long senderId;

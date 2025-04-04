@@ -69,9 +69,9 @@ public class ChatMessageService {
         );
     }
 
-    /**
-     * 채팅 메시지 조회 (커서 기반)
-     */
+
+     //채팅 메시지 조회 (커서 기반)
+
     @Transactional(readOnly = true)
     public ChatMessageSliceDto getMessages(Long chatRoomId, Long beforeMessageId, int size) {
         chatRoomRepository.findById(chatRoomId)

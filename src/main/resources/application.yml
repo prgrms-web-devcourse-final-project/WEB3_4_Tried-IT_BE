@@ -37,13 +37,17 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
+#웹소켓
+server:
+  address: 0.0.0.0
+  port: 8080
 
 
 jwt:
   secret: ${JWT_SECRET_KEY}
   refresh:
        expiration: 604800000
-  expiration: 600000 # 10분
+  expiration: 36000000 # 10분
   cookie:
     name: jwt
     http-only: true # XSS 공격 방어를 위한 핵심 설정
