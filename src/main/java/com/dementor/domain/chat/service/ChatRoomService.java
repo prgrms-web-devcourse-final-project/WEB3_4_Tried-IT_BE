@@ -41,14 +41,14 @@ public class ChatRoomService {
     //채팅방 생성---------------------------------------------------------------------
 
     //  멘토 & 멘티 각각에게 채팅방 생성
+    // 신청 멘티가, 멘티가 생성
     @Transactional
     public void createMentoringChatRooms(Member mentor, Member mentee) {
-        ChatRoom mentorRoom = new ChatRoom();
-//        mentorRoom.setApplymentId(applymentId);
-        mentorRoom.setRoomType(RoomType.MENTORING_CHAT);
-        mentorRoom.setMember(mentor); //사용자 멘토
-        mentorRoom.setTargetNickname(mentee.getNickname()); // 상대방 사용자 멘티 저장
-        chatRoomRepository.save(mentorRoom);
+//        ChatRoom mentorRoom = new ChatRoom();
+//        mentorRoom.setRoomType(RoomType.MENTORING_CHAT);
+//        mentorRoom.setMember(mentor); //사용자 멘토
+//        mentorRoom.setTargetNickname(mentee.getNickname()); // 상대방 사용자 멘티 저장
+//        chatRoomRepository.save(mentorRoom);
 
         ChatRoom menteeRoom = new ChatRoom();
 //        menteeRoom.setApplymentId(applymentId);
