@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dementor.domain.member.dto.request.SignupRequest;
+import com.dementor.domain.member.dto.response.MemberInfoResponse;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.exception.MemberErrorCode;
@@ -61,5 +62,17 @@ public class MemberService {
 			throw new MemberException(MemberErrorCode.DUPLICATE_NICKNAME);
 		});
 		return true;
+	}
+
+	public MemberInfoResponse getMemberInfo(String email) {
+		return memberRepository.findByEmail(email)
+			.map(member -> MemberInfoResponse.builder()
+				.id(member.getId())
+				.email(member.getEmail())
+				.nickname(member.getNickname())
+				.created_at(member.getCreatedAt())
+				.build())
+
+			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 	}
 }

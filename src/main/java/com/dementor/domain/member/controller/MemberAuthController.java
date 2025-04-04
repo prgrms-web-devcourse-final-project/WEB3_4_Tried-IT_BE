@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dementor.domain.admin.dto.response.AdminLoginResponse;
-import com.dementor.domain.admin.dto.response.AdminLogoutResponse;
 import com.dementor.domain.member.dto.request.LoginRequest;
 import com.dementor.domain.member.dto.response.MemberLoginResponse;
 import com.dementor.domain.member.dto.response.MemberLogoutResponse;
@@ -33,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "로그인, 로그아웃", description = "로그인, 로그아웃")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/member")
+@RequestMapping("/api/members")
 public class MemberAuthController {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
@@ -42,7 +40,7 @@ public class MemberAuthController {
 
 	@Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<MemberLoginResponse> login(@RequestBody LoginRequest loginRequest) {
 		try {
 			// 인증 시도
 			Authentication authentication = authenticationManager.authenticate(
@@ -79,15 +77,16 @@ public class MemberAuthController {
 
 		} catch (AuthenticationException e) {
 			return ResponseEntity.badRequest()
-				.body(AdminLoginResponse.builder()
+				.body(MemberLoginResponse.builder()
 					.message("로그인 실패: " + e.getMessage())
 					.accessToken(null)
+					.refreshToken(null)
 					.build());
 		}
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<?> logout() {
+	public ResponseEntity<MemberLogoutResponse> logout() {
 
 		SecurityContextHolder.clearContext();
 
@@ -103,7 +102,7 @@ public class MemberAuthController {
 
 	// 리프레시 토큰 엔드포인트 추가
 	@PostMapping("/refresh")
-	public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+	public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
 		try {
 			TokenDto tokens = tokenService.refreshAccessToken(request.getRefreshToken());
 
@@ -115,8 +114,9 @@ public class MemberAuthController {
 				.body(new TokenRefreshResponse(tokens.getAccessToken(), tokens.getRefreshToken(),"token refreshed"));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(AdminLogoutResponse.builder()
-					.success(false)
+				.body(TokenRefreshResponse.builder()
+					.accessToken(null)
+					.refreshToken(null)
 					.message("토큰 갱신 실패: " + e.getMessage())
 					.build());
 		}

@@ -48,19 +48,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class MentoringClassTest {
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private MemberRepository memberRepository;
-
     @Autowired
     private JobRepository jobRepository;
-
     @Autowired
     private MentorRepository mentorRepository;
-
     @Autowired
     private MentoringClassRepository mentoringClassRepository;
-
     @Autowired
     private ScheduleRepository scheduleRepository;
 

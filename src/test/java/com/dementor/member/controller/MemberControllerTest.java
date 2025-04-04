@@ -71,7 +71,7 @@ public class MemberControllerTest {
 		when(memberService.isEmail(email)).thenReturn(true);
 
 		// when & then
-		mvc.perform(get("/api/signup/isEmail")
+		mvc.perform(get("/api/members/isEmail")
 				.param("email", email))
 			.andExpect(jsonPath("$.isSuccess").value(true))
 			.andExpect(jsonPath("$.code").value("200"))
@@ -88,7 +88,7 @@ public class MemberControllerTest {
 			.thenThrow(new MemberException(MemberErrorCode.DUPLICATE_EMAIL));
 
 		// when & then
-		mvc.perform(get("/api/signup/isEmail")
+		mvc.perform(get("/api/members/isEmail")
 				.param("email", email))
 			.andExpect(jsonPath("$.isSuccess").value(false))
 			.andExpect(jsonPath("$.code").value("409"))
@@ -103,7 +103,7 @@ public class MemberControllerTest {
 		when(memberService.isNickname(nickname)).thenReturn(true);
 
 		// when & then
-		mvc.perform(get("/api/signup/isNickname")
+		mvc.perform(get("/api/members/isNickname")
 				.param("nickname", nickname))
 			.andExpect(jsonPath("$.isSuccess").value(true))
 			.andExpect(jsonPath("$.code").value("200"))
@@ -120,7 +120,7 @@ public class MemberControllerTest {
 			.thenThrow(new MemberException(MemberErrorCode.DUPLICATE_NICKNAME));
 
 		// when & then
-		mvc.perform(get("/api/signup/isNickname")
+		mvc.perform(get("/api/members/isNickname")
 				.param("nickname", nickname))
 			.andExpect(jsonPath("$.isSuccess").value(false))
 			.andExpect(jsonPath("$.code").value("409"))
@@ -137,7 +137,7 @@ public class MemberControllerTest {
 		doNothing().when(emailService).sendVerificationEmail(email);
 
 		// when & then
-		mvc.perform(post("/api/signup/verifyCode")
+		mvc.perform(post("/api/members/verifyCode")
 				.param("email", email))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.isSuccess").value(true))
@@ -157,7 +157,7 @@ public class MemberControllerTest {
 		when(emailService.verifyCode(email, "wrong")).thenReturn(false);
 
 		// when & then
-		mvc.perform(get("/api/signup/verifyEmail")
+		mvc.perform(get("/api/members/verifyEmail")
 				.param("email", email)
 				.param("verifyCode", code))
 			.andExpect(jsonPath("$.isSuccess").value(true))
@@ -176,7 +176,7 @@ public class MemberControllerTest {
 		when(emailService.verifyCode(email, code)).thenReturn(false);
 
 		// when & then
-		mvc.perform(get("/api/signup/verifyEmail")
+		mvc.perform(get("/api/members/verifyEmail")
 				.param("email", email)
 				.param("verifyCode", code))
 			.andExpect(status().isOk())
@@ -195,7 +195,7 @@ public class MemberControllerTest {
 
 
 		// when & then
-		mvc.perform(get("/api/signup/verifyEmail")
+		mvc.perform(get("/api/members/verifyEmail")
 				.param("email", email)
 				.param("verifyCode", wrongCode))
 			.andExpect(status().isOk())
@@ -220,7 +220,7 @@ public class MemberControllerTest {
 		doNothing().when(memberService).createMember(any(SignupRequest.class));
 
 		// when & then
-		mvc.perform(post("/api/signup")
+		mvc.perform(post("/api/members")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(jsonPath("$.isSuccess").value(true))
@@ -246,7 +246,7 @@ public class MemberControllerTest {
 			.when(memberService).createMember(any(SignupRequest.class));
 
 		// when & then
-		mvc.perform(post("/api/signup")
+		mvc.perform(post("/api/members")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(jsonPath("$.isSuccess").value(false))

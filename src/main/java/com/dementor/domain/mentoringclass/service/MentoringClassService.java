@@ -10,6 +10,8 @@ import com.dementor.domain.mentoringclass.dto.response.MentoringClassFindRespons
 import com.dementor.domain.mentoringclass.dto.response.MentoringClassUpdateResponse;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.entity.Schedule;
+import com.dementor.domain.mentoringclass.exception.MentoringClassException;
+import com.dementor.domain.mentoringclass.exception.MentoringClassExceptionCode;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 import com.dementor.domain.mentoringclass.repository.ScheduleRepository;
 import com.dementor.domain.mentoringclass.dto.SortDirection;
@@ -46,7 +48,7 @@ public class MentoringClassService {
     @Transactional
     public MentoringClassDetailResponse createClass(Long mentorId, MentoringClassCreateRequest request) {
         Mentor mentor = mentorRepository.findById(mentorId)
-            .orElseThrow(() -> new IllegalArgumentException("멘토를 찾을 수 없습니다: " + mentorId));
+            .orElseThrow(() -> new MentoringClassException("멘토를 찾을 수 없습니다: " + mentorId));
 
         MentoringClass mentoringClass = MentoringClass.builder()
                 .title(request.title())
@@ -80,7 +82,7 @@ public class MentoringClassService {
 
     public MentoringClassDetailResponse findOneClass(Long classId) {
         MentoringClass mentoringClass = mentoringClassRepository.findById(classId)
-                .orElseThrow(() -> new IllegalArgumentException("멘토링 수업를 찾을 수 없습니다: " + classId));
+                .orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND.getMessage()));
         return MentoringClassDetailResponse.from(mentoringClass);
     }
 
@@ -91,10 +93,10 @@ public class MentoringClassService {
     @Transactional
     public MentoringClassUpdateResponse updateClass(Long classId, Long memberId, MentoringClassUpdateRequest request) {
         MentoringClass mentoringClass = mentoringClassRepository.findById(classId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 멘토링 클래스입니다."));
+                .orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND.getMessage()));
         
         if (!mentoringClass.getMentor().getId().equals(memberId))
-            throw new IllegalArgumentException("해당 멘토링 클래스를 수정할 권한이 없습니다.");
+            throw new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_UNAUTHORIZED.getMessage());
 
         // 일정 아닌 정보
         if (request.title() != null)

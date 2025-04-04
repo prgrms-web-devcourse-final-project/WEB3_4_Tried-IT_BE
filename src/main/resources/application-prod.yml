@@ -1,3 +1,4 @@
 jwt:
   cookie:
     domain: .dementor.site
+    secure: true

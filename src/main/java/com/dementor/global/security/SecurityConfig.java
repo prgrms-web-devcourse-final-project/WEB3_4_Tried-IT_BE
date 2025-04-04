@@ -54,18 +54,23 @@ public class SecurityConfig {
 
 			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
 
-				.requestMatchers("/api/signup/**").permitAll()
-				.requestMatchers("/api/member/login").permitAll()
-
 				.requestMatchers("/api/admin/refresh").permitAll()
-				.requestMatchers("/api/member/refresh").permitAll()
+				.requestMatchers("/api/members/refresh").permitAll()
+
+				.requestMatchers("/api/members/info").hasAnyRole("MENTOR", "MENTEE")
+				.requestMatchers("/api/members/logout").authenticated()
+
+				//내 정보, 로그아웃 제외 허용
+				.requestMatchers("/api/members/**").permitAll()
 
 				.requestMatchers("/api/admin/login").permitAll()
+
+				//관리자 로그인제외 권한
+				.requestMatchers("/api/admin/logout").authenticated()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 
 				.requestMatchers(HttpMethod.GET, "/api/class").permitAll() // 모든 수업 조회 허용
 				.requestMatchers(HttpMethod.GET, "/api/class/{classId}").permitAll() // 특정 수업 조회 허용
-
 
 				.requestMatchers("/api/authenticate").permitAll()
 				.requestMatchers("/v3/api-docs/**").permitAll() // swagger 문서 허용
@@ -96,8 +101,11 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("https://dementor.site"));
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+		configuration.setAllowedOrigins(Arrays.asList(
+			"https://www.dementor.site",
+			"https://local.dementor.site:5173",
+			"https://admin-local.dementor.site:5174"
+		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
 		configuration.setExposedHeaders(Arrays.asList("Authorization"));

@@ -39,7 +39,7 @@ public class AdminAuthController {
 
 	@Operation(summary = "관리자 로그인", description = "관리자 계정으로 로그인합니다.")
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody AdminLoginRequest loginRequest) {
+	public ResponseEntity<AdminLoginResponse> login(@RequestBody AdminLoginRequest loginRequest) {
 		try {
 			// 인증 시도
 			Authentication authentication = authenticationManager.authenticate(
@@ -84,7 +84,7 @@ public class AdminAuthController {
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<?> logout(Authentication authentication) {
+	public ResponseEntity<AdminLogoutResponse> logout(Authentication authentication) {
 
 		if (authentication != null) {
 			String username = authentication.getName();
@@ -104,7 +104,7 @@ public class AdminAuthController {
 
 	// 리프레시 토큰 엔드포인트 추가
 	@PostMapping("/refresh")
-	public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+	public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
 		try {
 			TokenDto tokens = tokenService.refreshAccessToken(request.getRefreshToken());
 
@@ -116,8 +116,9 @@ public class AdminAuthController {
 				.body(new TokenRefreshResponse(tokens.getAccessToken(), tokens.getRefreshToken(),"token refreshed"));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(AdminLogoutResponse.builder()
-					.success(false)
+				.body(TokenRefreshResponse.builder()
+					.accessToken(null)
+					.refreshToken(null)
 					.message("토큰 갱신 실패: " + e.getMessage())
 					.build());
 		}
