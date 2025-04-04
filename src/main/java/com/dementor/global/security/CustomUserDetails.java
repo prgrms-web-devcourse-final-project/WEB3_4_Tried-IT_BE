@@ -3,10 +3,12 @@ package com.dementor.global.security;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 
@@ -20,6 +22,7 @@ public class CustomUserDetails implements UserDetails {
 	private final Long id;
 	private final String email;
 	private final String password;
+	@Nullable
 	private final String nickname;
 	private final Collection<? extends GrantedAuthority> authorities;
 
@@ -32,6 +35,19 @@ public class CustomUserDetails implements UserDetails {
 			member.getEmail(),
 			member.getPassword(),
 			member.getNickname(),
+			Collections.singleton(authority)
+		);
+	}
+
+	// Member 엔티티에서 CustomUserDetails 객체 생성
+	public static CustomUserDetails ofAdmin(Admin admin) {
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + "ADMIN");
+
+		return new CustomUserDetails(
+			admin.getId(),
+			admin.getUsername(),
+			admin.getPassword(),
+			null,
 			Collections.singleton(authority)
 		);
 	}

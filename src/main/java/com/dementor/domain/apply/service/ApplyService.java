@@ -1,10 +1,14 @@
 package com.dementor.domain.apply.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dementor.domain.apply.dto.request.ApplyRequest;
-import com.dementor.domain.apply.dto.response.ApplyResponse;
+import com.dementor.domain.apply.dto.request.ApplyCreateRequest;
+import com.dementor.domain.apply.dto.response.ApplyIdResponse;
+import com.dementor.domain.apply.dto.response.ApplyPageResponse;
 import com.dementor.domain.apply.entity.Apply;
 import com.dementor.domain.apply.entity.ApplyStatus;
 import com.dementor.domain.apply.exception.ApplyErrorCode;
@@ -30,8 +34,9 @@ public class ApplyService {
 	private final MentoringClassRepository mentoringClassRepository;
 	private final MemberRepository memberRepository;
 
+	//멘토링 신청
 	@Transactional
-	public ApplyResponse.GetApplyId createApply(ApplyRequest.ApplyCreateRequest req, Long memberId) {
+	public ApplyIdResponse createApply(ApplyCreateRequest req, Long memberId) {
 
 		MentoringClass mentoringClass = mentoringClassRepository.findById(req.getClassId())
 			.orElseThrow(() -> new IllegalArgumentException("멘토링 클래스를 찾을 수 없습니다."));
@@ -39,6 +44,12 @@ public class ApplyService {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
+		//자신의 멘토링 클래스에 신청할 수 없음
+		if (mentoringClass.getMentor().getId().equals(memberId)) {
+			throw new ApplyException(ApplyErrorCode.CAN_NOT_APPLY_YOUR_CLASS);
+		}
+
+		//일정 필수
 		if (req.getSchedule() == null) {
 			throw new ApplyException(ApplyErrorCode.SCHEDULE_REQUIRED);
 		}
@@ -53,6 +64,34 @@ public class ApplyService {
 
 		Apply savedApply = applyRepository.save(apply);
 
-		return ApplyResponse.GetApplyId.from(savedApply);
+		return ApplyIdResponse.from(savedApply);
+	}
+
+	//멘토링 신청 취소
+	@Transactional
+	public void deleteApply(Long applyId, Long memberId) {
+
+		Apply apply = applyRepository.findById(applyId)
+			.orElseThrow(() -> new ApplyException(ApplyErrorCode.APPLY_NOT_FOUND));
+
+		if (!apply.getMember().getId().equals(memberId)) {
+			throw new ApplyException(ApplyErrorCode.NOT_YOUR_APPLY);
+		}
+
+		applyRepository.delete(apply);
+
+	}
+
+
+	//내가 신청한 멘토링 목록 조회 (페이징)
+	public ApplyPageResponse getApplyList(Long memberId, int page, int size) {
+		memberRepository.findById(memberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+		Pageable pageable = PageRequest.of(page, size);
+
+		Page<Apply> applyPage = applyRepository.findByMemberId(memberId, pageable);
+
+		return ApplyPageResponse.from(applyPage, page, size);
 	}
 }

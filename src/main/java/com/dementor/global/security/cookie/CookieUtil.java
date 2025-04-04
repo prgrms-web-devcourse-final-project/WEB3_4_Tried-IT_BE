@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CookieUtil {
-	@Value("${jwt.cookie.name}")
-	private String cookieName;
+	@Value("${jwt.cookie.access-cookie.name}")
+	private String accessCookieName;
+	@Value("${jwt.cookie.refresh-cookie.name}")
+	private String refreshCookieName;
 
 	@Value("${jwt.cookie.max-age-seconds}")
 	private long maxAgeSeconds;
@@ -21,21 +23,48 @@ public class CookieUtil {
 	@Value("${jwt.cookie.path}")
 	private String path;
 
-	public ResponseCookie createJwtCookie(String token) {
-		return ResponseCookie.from(cookieName, token)
+	@Value("${jwt.cookie.domain}")
+	private String domain;
+
+	public ResponseCookie createAccessTokenCookie(String token) {
+		return ResponseCookie.from(accessCookieName, token)
 			.httpOnly(httpOnly)
 			.secure(secure)
 			.path(path)
+			.domain(domain)
 			.maxAge(maxAgeSeconds)
 			.sameSite("Strict")
 			.build();
 	}
 
-	public ResponseCookie deleteJwtCookie() {
-		return ResponseCookie.from(cookieName, "")
+	public ResponseCookie deleteAccessTokenCookie() {
+		return ResponseCookie.from(accessCookieName, "")
 			.httpOnly(httpOnly)
 			.secure(secure)
 			.path(path)
+			.domain(domain)
+			.maxAge(0)
+			.sameSite("Strict")
+			.build();
+	}
+
+	public ResponseCookie createRefreshTokenCookie(String token) {
+		return ResponseCookie.from(refreshCookieName, token)
+			.httpOnly(httpOnly)
+			.secure(secure)
+			.path(path)
+			.domain(domain)
+			.maxAge(maxAgeSeconds)
+			.sameSite("Strict")
+			.build();
+	}
+
+	public ResponseCookie deleteRefreshTokenCookie() {
+		return ResponseCookie.from(refreshCookieName, "")
+			.httpOnly(httpOnly)
+			.secure(secure)
+			.path(path)
+			.domain(domain)
 			.maxAge(0)
 			.sameSite("Strict")
 			.build();

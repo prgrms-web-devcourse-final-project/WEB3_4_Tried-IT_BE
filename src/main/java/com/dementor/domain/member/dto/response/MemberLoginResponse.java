@@ -1,6 +1,5 @@
 package com.dementor.domain.member.dto.response;
 
-import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,19 +11,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
-	// this is from 김호남남
-	private Long id;
-
-	@Schema(description = "닉네임")
-	@NotNull
-	private String nickname;
-
+public class MemberLoginResponse {
 	@Schema(description = "메시지")
-	@NotNull
 	private String message;
 
-	// this is from 김호남남
 	@Schema(description = "JWT 토큰")
-	private String token;
+	private String accessToken;
+
+	@Schema(description = "JWT refresh 토큰")
+	private String refreshToken;
 }

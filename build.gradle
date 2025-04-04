@@ -54,6 +54,11 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers:1.19.7' // 기본 Testcontainers
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3'  // JUnit 5 연동
 
+    //fixture monkey
+    testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.0.0'
+
+    // spring hateoas
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 }
 
 tasks.named('test') {

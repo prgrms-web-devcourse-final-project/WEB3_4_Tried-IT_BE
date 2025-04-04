@@ -1,26 +1,15 @@
 package com.dementor.domain.job.entity;
 
-import java.util.List;
-
 import com.dementor.domain.mentor.entity.Mentor;
+import jakarta.persistence.*;
+import lombok.*;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Entity
 @Table(name = "job")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Job {
@@ -34,5 +23,9 @@ public class Job {
     // Mentor 엔티티와의 관계 (일대다)
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
     private List<Mentor> mentors;
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }
 

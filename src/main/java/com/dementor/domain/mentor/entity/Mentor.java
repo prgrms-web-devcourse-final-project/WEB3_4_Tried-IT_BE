@@ -1,58 +1,40 @@
 package com.dementor.domain.mentor.entity;
 
-import java.util.List;
-
 import com.dementor.domain.job.entity.Job;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
+import com.dementor.domain.postattachment.entity.PostAttachment;
+import jakarta.persistence.*;
+import lombok.*;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.List;
 
 @Entity
 @Table(name = "mentor")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Mentor {
 
     @Id
-    @Column(name = "member_id")
     private Long id;
 
-    // Member 엔티티와의 관계 (일대일)
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // member_id를 PK이자 FK로 사용
     @JoinColumn(name = "member_id")
     private Member member;
 
-    // categories 엔티티와의 관계 (다대일)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    // PostAttachment 엔티티와의 관계 (일대일, 식별관계)
-    //todo: 파일첨부 테이블과 연관관계
-    //private PostAttachment attachment;
+    // PostAttachment 엔티티와의 관계 (일대다)
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostAttachment> attachments;
 
     // Mentoring 수업 엔티티와의 관계 (일대다)
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "mentoringClass_id")
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MentoringClass> mentorings;
 
     @Column(length = 10, nullable = false)
@@ -67,36 +49,64 @@ public class Mentor {
     @Column(length = 20, nullable = false)
     private String phone;
 
+    @Column(length = 20, nullable = false)
+    private String email;
+
     @Column(length = 255, nullable = false)
     private String introduction;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ApprovalStatus isApproved;
+    @Builder.Default
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ApprovalStatus isModified;
+    @Builder.Default
+    private ModificationStatus modificationStatus = ModificationStatus.NONE;
 
-    @Column(name = "best_for", length = 255)
+    @Column(length = 255)
     private String bestFor;
 
-    @Column(name = "attachment_id")
-    private Long attachmentId;
-
-	public Mentor() {
-	}
-
-	// ApprovalStatus Enum 정의
+    // 승인 상태 Enum
     public enum ApprovalStatus {
-        Y, N
+        PENDING,    // 대기 중
+        APPROVED,   // 승인됨
+        REJECTED    // 거부됨
     }
 
+    // 정보 수정 상태 Enum
+    public enum ModificationStatus {
+        NONE,      // 수정 요청 없음
+        PENDING,   // 승인 대기 중
+        APPROVED,  // 수정 승인됨
+        REJECTED   // 수정 거부됨
+    }
 
-    // 멘토링 수업 추가 메서드
-    public void addMentoringClass(MentoringClass mentoringClass) {
-        mentorings.add(mentoringClass);
+    // 승인 상태 변경 메서드
+    public void updateApprovalStatus(ApprovalStatus approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
+    // 정보 수정 상태 변경 메서드
+    public void updateModificationStatus(ModificationStatus modificationStatus) {
+        this.modificationStatus = modificationStatus;
+    }
+
+    // 첨부파일 목록 업데이트 메서드
+    public void updateAttachments(List<PostAttachment> attachments) {
+        this.attachments = attachments;
+    }
+
+    // 필드 수정 메서드
+    public void update(String currentCompany, Integer career, String phone,
+                       String email, String introduction, String bestFor) {
+        this.currentCompany = currentCompany;
+        this.career = career;
+        this.phone = phone;
+        this.email = email;
+        this.introduction = introduction;
+        this.bestFor = bestFor;
+        this.modificationStatus = ModificationStatus.PENDING;
     }
 }
