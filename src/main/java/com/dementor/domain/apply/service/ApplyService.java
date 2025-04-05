@@ -78,11 +78,11 @@ public class ApplyService {
 
 
 
-		//---------------챗 영역---------------------
-		//  멘토, 멘티 memberId 추출
-		Member mentor = mentoringClass.getMember();
-		Member mentee = apply.getMember();
-		chatRoomService.createMentoringChatRooms(mentor, mentee);
+//		//---------------챗 영역---------------------
+//		//  멘토, 멘티 memberId 추출
+//		Member mentor = mentoringClass.getMember();
+//		Member mentee = apply.getMember();
+//		chatRoomService.createMentoringChatRooms(mentor, mentee);
 
 //		return ApplyResponse.GetApplyId.from(savedApply);
 		return ApplyIdResponse.from(savedApply);

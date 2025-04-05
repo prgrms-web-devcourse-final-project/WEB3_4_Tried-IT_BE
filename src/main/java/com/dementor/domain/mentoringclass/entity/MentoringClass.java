@@ -57,7 +57,7 @@ public class MentoringClass extends BaseEntity {
     }
 
 
-    // 멘토의 member 리턴 (ChatRoomService에서 사용 가능)
+    // 멘토의 memberId 얻기 (applyService. for 멘토링챗 타입의 chatroom생성 )
     public Member getMember() {
         return mentor != null ? mentor.getMember() : null;
     }
