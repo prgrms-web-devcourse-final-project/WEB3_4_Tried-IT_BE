@@ -78,11 +78,18 @@ public class ApplyService {
 
 
 
-//		//---------------챗 영역---------------------
-//		//  멘토, 멘티 memberId 추출
-//		Member mentor = mentoringClass.getMember();
-//		Member mentee = apply.getMember();
-//		chatRoomService.createMentoringChatRooms(mentor, mentee);
+		//---------------챗 영역---------------------
+		//  멘토, 멘티 memberId 추출
+		Member mentor = mentoringClass.getMember();
+		Member mentee = apply.getMember();
+
+
+		// 멘토링 채팅방 생성
+		chatRoomService.getOrCreateMentoringChatRoom(
+				mentor.getId(),
+				mentee.getId(),
+				mentor.getNickname() // 초기 멘티가 볼 닉네임(동적조회로 각각 상대방 닉네임 조회 가능)
+		);
 
 //		return ApplyResponse.GetApplyId.from(savedApply);
 		return ApplyIdResponse.from(savedApply);
