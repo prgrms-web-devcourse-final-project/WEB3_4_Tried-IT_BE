@@ -23,11 +23,15 @@ public class ApplyResponse {
 	@Builder
 	public static class GetApplyId{
 		private Long applymentId;
+		private Long mentorId; //for. chat 멘토,멘티Id 사용
+		private Long menteeId;
 
 		public static GetApplyId from(Apply apply) {
 			return GetApplyId.builder()
-				.applymentId(apply.getId())
-				.build();
+					.applymentId(apply.getId())
+					.mentorId(apply.getMentoringClass().getMentor().getId())
+					.menteeId(apply.getMember().getId())
+					.build();
 		}
 	}
 
