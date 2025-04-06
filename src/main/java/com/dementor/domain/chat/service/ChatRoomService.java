@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +25,12 @@ public class ChatRoomService {
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
 
+    //닉네임 캐시 저장 - (닉네임캐싱) 최초 1회만 DB 조회 후 메모리 캐시에서 꺼냄
+    private final Map<Long, String> nicknameCache = new ConcurrentHashMap<>();
 
 
-   // 멘토링 채팅방 생성 or //기존 채팅방 반환
+
+    // 멘토링 채팅방 생성 or //기존 채팅방 반환
     @Transactional
     public ChatRoom getOrCreateMentoringChatRoom(Long mentorId, Long menteeId) {
 
@@ -106,16 +111,19 @@ public class ChatRoomService {
     }
 
 
-    // 자신의 입장에서 상대방 닉네임 반환
+    // 자신의 입장에서 상대방 닉네임 반환 (캐시를 이용해서 닉네임 조회)
     public String getTargetNickname(ChatRoom room, Long viewerId) {
         if (room.getRoomType() == RoomType.MENTORING_CHAT) {
             Long targetId = viewerId.equals(room.getMentorId())
                     ? room.getMenteeId()
                     : room.getMentorId();
 
-            return memberRepository.findById(targetId)
-                    .map(Member::getNickname)
-                    .orElse("알 수 없음");
+            // 캐시 적용: 처음만 DB에서 조회, 이후 캐시에서 가져옴
+            return nicknameCache.computeIfAbsent(targetId, id ->
+                    memberRepository.findById(id)
+                            .map(Member::getNickname)
+                            .orElse("알 수 없음")
+            );
         }
 
         // 관리자 채팅: viewer가 관리자면 → 상대 member 닉네임 조회
