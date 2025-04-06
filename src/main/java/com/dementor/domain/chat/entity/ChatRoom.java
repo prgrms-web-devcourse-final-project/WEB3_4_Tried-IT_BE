@@ -35,13 +35,14 @@ public class ChatRoom {
     }
 
 
-    @Column(nullable = true) //마지막 메시지
+    @Column(nullable = true) //채팅방 기준 마지막 메시지
     private LocalDateTime lastMessageAt;
 
     // 메시지 보낼 때 직접 갱신
-    public void updateLastMessageTime() {
-        this.lastMessageAt = LocalDateTime.now();
+    public void updateLastMessageTime(LocalDateTime sentAt) {
+        this.lastMessageAt = sentAt;
     }
+
 
 
 

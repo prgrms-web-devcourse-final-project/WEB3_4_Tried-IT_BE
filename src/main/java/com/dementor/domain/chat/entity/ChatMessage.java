@@ -43,7 +43,7 @@ public class ChatMessage {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // 생성일시
+    // 메시지 보낸 시간
     @Column(nullable = false)
     private LocalDateTime sentAt = LocalDateTime.now();
 

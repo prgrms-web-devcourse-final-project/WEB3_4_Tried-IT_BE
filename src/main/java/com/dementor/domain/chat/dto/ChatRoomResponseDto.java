@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class ChatRoomResponseDto {
     private Long chatRoomId;
     private RoomType roomType;     // "MENTORING_CHAT" or "ADMIN_CHAT"
-    private String lastMessage;
-    private LocalDateTime lastSentAt;
+    private String lastMessage;  // 마지막 메시지 내용
+    private LocalDateTime lastMessageAt; // 마지막 메시지 보낸시간
     private String targetNickname;  //상대방 닉네임
 }
