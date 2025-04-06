@@ -75,4 +75,17 @@ public class MemberService {
 
 			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 	}
+
+	@Transactional
+	public void modifyNickname(String email, String nickname) {
+		//중복 처리를 한번 더 해줘야하나?
+		memberRepository.findByNickname(nickname).ifPresent(member -> {
+			throw new MemberException(MemberErrorCode.DUPLICATE_NICKNAME);
+		});
+
+		Member member = memberRepository.findByEmail(email).orElseThrow(
+			() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+		member.updateNickname(nickname);
+	}
 }

@@ -11,12 +11,14 @@ import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 
 @Entity
 @Builder
 @AllArgsConstructor
 @Getter
+@Setter
 public class Member extends BaseEntity {
 
 	@Id
@@ -41,6 +43,10 @@ public class Member extends BaseEntity {
 
 	public Member() {
 
+	}
+
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
 }

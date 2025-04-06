@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CookieUtil {
+
 	@Value("${jwt.cookie.access-cookie.name}")
 	private String accessCookieName;
+
 	@Value("${jwt.cookie.refresh-cookie.name}")
 	private String refreshCookieName;
 

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,6 +67,13 @@ public class MemberController {
 	public ApiResponse<MemberInfoResponse> info(Principal principal) {
 		MemberInfoResponse memberInfo = memberService.getMemberInfo(principal.getName());
 		return ApiResponse.of(true, HttpStatus.OK, "Member Info", memberInfo);
+	}
+
+	@PutMapping("/info")
+	@PreAuthorize("isAuthenticated()")
+	public ApiResponse<?> modifyNickname(Principal principal, @RequestParam("nickname") String nickname) {
+		memberService.modifyNickname(principal.getName(), nickname);
+		return ApiResponse.of(true, HttpStatus.OK, "Modify nickname");
 	}
 
 }
