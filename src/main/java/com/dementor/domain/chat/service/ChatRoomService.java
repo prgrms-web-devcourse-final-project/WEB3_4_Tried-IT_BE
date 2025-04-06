@@ -107,7 +107,7 @@ public class ChatRoomService {
 
 
     // 자신의 입장에서 상대방 닉네임 반환
-    private String getTargetNickname(ChatRoom room, Long viewerId) {
+    public String getTargetNickname(ChatRoom room, Long viewerId) {
         if (room.getRoomType() == RoomType.MENTORING_CHAT) {
             Long targetId = viewerId.equals(room.getMentorId())
                     ? room.getMenteeId()

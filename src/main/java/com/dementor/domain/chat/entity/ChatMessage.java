@@ -45,7 +45,14 @@ public class ChatMessage {
 
     // 메시지 보낸 시간
     @Column(nullable = false)
-    private LocalDateTime sentAt = LocalDateTime.now();
+    private LocalDateTime sentAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (sentAt == null) {
+            sentAt = LocalDateTime.now();
+        }
+    }
 
 //   -> *senderId로
 //    @Column(nullable = false)

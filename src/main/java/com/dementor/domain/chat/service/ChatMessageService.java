@@ -16,9 +16,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.lettuce.core.GeoArgs.Unit.m;
 
 @Service
 @RequiredArgsConstructor
@@ -28,24 +31,21 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final AdminRepository adminRepository;
+    private final ChatRoomService chatRoomService;
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-    /**
-     * 메시지 저장 및 닉네임 분기 처리
-     */
+
+    // 메시지 저장 및 닉네임 분기 처리
     @Transactional
     public ChatMessageResponseDto handleMessage(ChatMessageSendDto dto, Long senderId, SenderType senderType) {
         ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + dto.getChatRoomId()));
 
         // 닉네임 분기 처리
-        String nickname = switch (senderType) {
-            case ADMIN -> "관리자";
-            case MEMBER -> memberRepository.findById(senderId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다.")).getNickname();
-            case SYSTEM -> "시스템";
-        };
+        String nickname = senderType == SenderType.SYSTEM
+                ? "시스템"
+                : chatRoomService.getTargetNickname(chatRoom, senderId);
 
         // 메시지 생성 및 저장
         ChatMessage message = new ChatMessage();
@@ -54,8 +54,12 @@ public class ChatMessageService {
         message.setSenderId(senderId);
         message.setSenderType(senderType);
         message.setContent(dto.getType() == MessageType.MESSAGE ? dto.getMessage() : null);
+        message.setSentAt(LocalDateTime.now()); // sentAt 명시적 설정
+
 
         chatMessageRepository.save(message);
+        chatRoom.updateLastMessageTime(message.getSentAt()); // 마지막 메시지 시간 갱신
+
 
         //  응답 DTO 생성
         return new ChatMessageResponseDto(
@@ -74,22 +78,18 @@ public class ChatMessageService {
 
     @Transactional(readOnly = true)
     public ChatMessageSliceDto getMessages(Long chatRoomId, Long beforeMessageId, int size) {
-        chatRoomRepository.findById(chatRoomId)
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + chatRoomId));
 
         List<ChatMessage> messages = (beforeMessageId != null)
                 ? chatMessageRepository.findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(chatRoomId, beforeMessageId)
                 : chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId);
 
-        List<ChatMessageResponseDto> dtoList = messages.stream().map(m -> {
-            // 닉네임 분기
-            String nickname = switch (m.getSenderType()) {
-                case ADMIN -> "관리자";
-                case SYSTEM -> "시스템";
-                case MEMBER -> memberRepository.findById(m.getSenderId())
-                        .map(Member::getNickname)
-                        .orElse("알 수 없음");
-            };
+            // 닉네임 분기, chatRoomService 사용
+            List<ChatMessageResponseDto> dtoList = messages.stream().map((ChatMessage m) -> {
+                String nickname = m.getSenderType() == SenderType.SYSTEM
+                        ? "시스템"
+                        : chatRoomService.getTargetNickname(chatRoom, m.getSenderId());
 
             return new ChatMessageResponseDto(
                     m.getMessageType(),

@@ -2,6 +2,7 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
+import com.dementor.domain.chat.entity.MessageType;
 import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.service.ChatMessageService;
 import com.dementor.domain.member.entity.Member;
@@ -13,6 +14,9 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Controller
 @RequiredArgsConstructor
@@ -30,7 +34,7 @@ public class WebSocketController {
             Long senderId;
             SenderType senderType;
 
-            // 관리자 또는 멤버 분기
+            // JWT 토큰 분석 흐 관리자 또는 멤버 분기
             if (jwtTokenProvider.isAdminToken(token)) {
                 senderId = jwtTokenProvider.getAdminId(token);
                 senderType = SenderType.ADMIN;
@@ -39,14 +43,17 @@ public class WebSocketController {
                 senderType = SenderType.MEMBER;
             }
 
-            // 메시지 처리
+            // 메시지 처리 및 저장
             ChatMessageResponseDto response = chatMessageService.handleMessage(dto, senderId, senderType);
 
-            // 구독자에게 메시지 전송
+            // 구독자에게 브로드캐스트(메시지 전송)
             messagingTemplate.convertAndSend("/sub/chat/room/" + dto.getChatRoomId(), response);
 
         } catch (Exception e) {
             System.err.println("WebSocket 메시지 처리 오류: " + e.getMessage());
         }
     }
+
+
+
 }
