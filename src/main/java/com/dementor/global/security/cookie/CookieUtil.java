@@ -35,7 +35,7 @@ public class CookieUtil {
 			.path(path)
 			.domain(domain)
 			.maxAge(maxAgeSeconds)
-			.sameSite("Strict")
+			.sameSite("Lax")
 			.build();
 	}
 
@@ -46,7 +46,7 @@ public class CookieUtil {
 			.path(path)
 			.domain(domain)
 			.maxAge(0)
-			.sameSite("Strict")
+			.sameSite("Lax")
 			.build();
 	}
 
@@ -57,7 +57,7 @@ public class CookieUtil {
 			.path(path)
 			.domain(domain)
 			.maxAge(maxAgeSeconds)
-			.sameSite("Strict")
+			.sameSite("Lax")
 			.build();
 	}
 
@@ -68,7 +68,7 @@ public class CookieUtil {
 			.path(path)
 			.domain(domain)
 			.maxAge(0)
-			.sameSite("Strict")
+			.sameSite("Lax")
 			.build();
 	}
 }

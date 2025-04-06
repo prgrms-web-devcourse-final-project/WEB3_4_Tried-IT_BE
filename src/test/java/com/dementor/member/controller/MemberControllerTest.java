@@ -212,7 +212,7 @@ public class MemberControllerTest {
 		SignupRequest request = SignupRequest.builder()
 			.email("test@email.com")
 			.password("password123")
-			.nickName("nickname")
+			.nickname("nickname")
 			.name("name")
 			.verifyCode("123456")
 			.build();
@@ -237,7 +237,7 @@ public class MemberControllerTest {
 		SignupRequest request = SignupRequest.builder()
 			.email("test@email.com")
 			.password("password123")
-			.nickName("nickname")
+			.nickname("nickname")
 			.name("name")
 			.verifyCode("wrong")
 			.build();

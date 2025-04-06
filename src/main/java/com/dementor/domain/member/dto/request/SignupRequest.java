@@ -16,7 +16,7 @@ public class SignupRequest {
 	private String password;
 
 	@NotNull
-	private String nickName;
+	private String nickname;
 
 	@NotNull
 	private String name;

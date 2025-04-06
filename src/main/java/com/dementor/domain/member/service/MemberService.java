@@ -31,6 +31,10 @@ public class MemberService {
 			throw new MemberException(MemberErrorCode.DUPLICATE_EMAIL);
 		});
 
+		memberRepository.findByNickname(signupRequest.getNickname()).ifPresent(member -> {
+			throw new MemberException(MemberErrorCode.DUPLICATE_NICKNAME);
+		});
+
 		//redis 에 저장된 code 가져오기
 		String storedCode = redisTemplate.opsForValue().get("email:" + signupRequest.getEmail());
 
@@ -39,7 +43,7 @@ public class MemberService {
 			Member member = Member.builder()
 				.email(signupRequest.getEmail())
 				.password(passwordEncoder.encode(signupRequest.getPassword()))
-				.nickname(signupRequest.getNickName())
+				.nickname(signupRequest.getNickname())
 				.name(signupRequest.getName())
 				.userRole(UserRole.MENTOR)
 				.build();
