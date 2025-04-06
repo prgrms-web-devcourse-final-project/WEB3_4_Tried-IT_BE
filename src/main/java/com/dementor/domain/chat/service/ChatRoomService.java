@@ -27,7 +27,7 @@ public class ChatRoomService {
 
    // 멘토링 채팅방 생성 or //기존 채팅방 반환
     @Transactional
-    public ChatRoom getOrCreateMentoringChatRoom(Long mentorId, Long menteeId, String mentorNickname) {
+    public ChatRoom getOrCreateMentoringChatRoom(Long mentorId, Long menteeId) {
 
 //        // 이미 존재하는 채팅방이 있는지 확인
 //        List<ChatRoom> existingRooms = chatRoomRepository.findMentoringChatRoomsByMemberId(menteeId);
@@ -42,7 +42,7 @@ public class ChatRoomService {
                 .roomType(RoomType.MENTORING_CHAT)
                 .mentorId(mentorId)
                 .menteeId(menteeId)
-                .targetNickname(mentorNickname) // 기본값 (멘티 기준)
+//                .targetNickname(mentorNickname) // 기본값 (멘티 기준)
                 .build();
 
         return chatRoomRepository.save(newRoom);
@@ -52,7 +52,7 @@ public class ChatRoomService {
 
     // 관리자 채팅방 생성
     @Transactional
-    public void createAdminChatRooms(Admin admin, Member member) {
+    public ChatRoomResponseDto createAdminChatRooms(Admin admin, Member member) {
         ChatRoom room = ChatRoom.builder()
                 .roomType(RoomType.ADMIN_CHAT)
                 .adminId(admin.getId())
@@ -61,6 +61,9 @@ public class ChatRoomService {
                 .build();
 
         chatRoomRepository.save(room);
+
+        return toDto(room, admin.getId());  //dto 매개변수 viewerid
+
     }
 //----------------------------------------------------------------
 
@@ -115,6 +118,17 @@ public class ChatRoomService {
                     .orElse("알 수 없음");
         }
 
-        return room.getTargetNickname(); // ADMIN_CHAT은 기존 방식 유지
+        // 관리자 채팅: viewer가 관리자면 → 상대 member 닉네임 조회
+        if (room.getRoomType() == RoomType.ADMIN_CHAT) {
+            if (viewerId.equals(room.getAdminId())) {
+                return memberRepository.findById(room.getMemberId())
+                        .map(Member::getNickname)
+                        .orElse("알 수 없음");
+            } else {
+                return room.getTargetNickname(); // 사용자 입장에서 → '관리자'
+            }
+        }
+
+        return "알 수 없음";
     }
 }

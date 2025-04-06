@@ -6,6 +6,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.dementor.domain.chat.entity.ChatRoom;
+import com.dementor.domain.chat.entity.RoomType;
+import com.dementor.domain.chat.repository.ChatRoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +60,9 @@ public class ApplyServiceTest {
 
 	@Autowired
 	private JobRepository jobRepository;
+
+	@Autowired
+	private ChatRoomRepository chatRoomRepository; //챗
 
 	private MentoringClass mentoringClass;
 	private Long mentoringClassId;
@@ -122,24 +128,33 @@ public class ApplyServiceTest {
 	@DisplayName("멘토링 신청 성공")
 	void createApplySuccess() {
 
-		ApplyCreateRequest request = new ApplyCreateRequest();
+		ApplyRequest.ApplyCreateRequest request = new ApplyRequest.ApplyCreateRequest();
 		request.setClassId(mentoringClassId);
 		request.setInquiry("테스트 문의입니다");
 		request.setSchedule(LocalDateTime.now().plusDays(1));
 
 
-		ApplyIdResponse result = applyService.createApply(request, testMember.getId());
+		ApplyResponse.GetApplyId result = applyService.createApply(request, testMember.getId());
 
 
 		assertNotNull(result);
+		assertNotNull(result.getApplymentId());
+		assertNotNull(result.getChatRoomId()); // chat
 		assertNotNull(result.getApplyId());
 
 
-		Apply savedApply = applyRepository.findById(result.getApplyId()).orElse(null);
+		Apply savedApply = applyRepository.findById(result.getApplymentId()).orElse(null);
 		assertNotNull(savedApply);
 		assertEquals("테스트 문의입니다", savedApply.getInquiry());
 		assertEquals(ApplyStatus.PENDING, savedApply.getApplyStatus());
 		assertEquals(mentoringClassId, savedApply.getMentoringClass().getId());
+
+		// 실제 저장된 ChatRoom 확인(멘토링챗 타입 chatRoom)
+		ChatRoom savedRoom = chatRoomRepository.findById(result.getChatRoomId()).orElse(null);
+		assertNotNull(savedRoom); // DB에 채팅방이 실제 생성됐는지 확인
+		assertEquals(RoomType.MENTORING_CHAT, savedRoom.getRoomType());
+		assertEquals(savedApply.getMentoringClass().getMember().getId(), savedRoom.getMentorId());
+		assertEquals(savedApply.getMember().getId(), savedRoom.getMenteeId());
 	}
 
 	@Test
@@ -252,7 +267,7 @@ public class ApplyServiceTest {
 		assertEquals(5, page2Result.getApplyments().size());
 	}
 
-	
+
 	@Test
 	@DisplayName("존재하지 않는 멘토링 클래스의 신청 날짜 목록 조회 시 예외 발생")
 	void getApplySchedulesByInvalidClassId() {

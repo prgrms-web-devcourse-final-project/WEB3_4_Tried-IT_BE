@@ -35,7 +35,7 @@ public class ChatController {
     //ApplyService에서 apply 저장 후, mentor, mentee를 DB에서 꺼내서 chatRoomService.createMentoringChatRooms(...) 로 2번 저장까지 완료
     //관리자 챗 채팅방 생성
     @PostMapping("/admin-room")
-    public ResponseEntity<Void> createAdminChatRoom(
+    public ResponseEntity<ChatRoomResponseDto> createAdminChatRoom(
             @RequestParam Long adminId,
             @RequestParam Long memberId
     ) {
@@ -45,27 +45,49 @@ public class ChatController {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        chatRoomService.createAdminChatRooms(admin, member); // 서비스 메서드 그대로 사용
-        return ResponseEntity.ok().build();
+
+        ChatRoomResponseDto room = chatRoomService.createAdminChatRooms(admin, member); // ✅ 반환값 받도록 변경
+
+
+        return ResponseEntity.ok(room);
     }
 
 
-    //사용자 채팅방 목록 조회 (멤버 또는 관리자)
-    // memberId 또는 adminId 중 하나를 파라미터로 전달받아 채팅방 목록 조회
 
-    @GetMapping("/rooms")
-    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
-            @RequestParam(required = false) Long memberId,
-            @RequestParam(required = false) Long adminId
+    //멤버가 자신의 채팅방 조회
+    @GetMapping("/member/rooms")
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsMember(
+            @RequestParam Long memberId
     ) {
-        if (memberId != null) {
-            return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
-        } else if (adminId != null) {
-            return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(adminId));
-        } else {
-            throw new IllegalArgumentException("memberId 또는 adminId 중 하나는 필수입니다.");
-        }
+        return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
     }
+
+    //관리자가 자신의 채팅방 조회
+    @GetMapping("/admin/rooms")
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsAdmin(
+            @RequestParam Long adminId
+    ) {
+        return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(adminId));
+    }
+
+
+
+    //    //사용자 채팅방 목록 조회 (멤버 또는 관리자)
+//    // memberId 또는 adminId 중 하나를 파라미터로 전달받아 채팅방 목록 조회
+//
+//    @GetMapping("/rooms")
+//    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
+//            @RequestParam(required = false) Long memberId,
+//            @RequestParam(required = false) Long adminId
+//    ) {
+//        if (memberId != null) {
+//            return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
+//        } else if (adminId != null) {
+//            return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(adminId));
+//        } else {
+//            throw new IllegalArgumentException("memberId 또는 adminId 중 하나는 필수입니다.");
+//        }
+//    }
 
 
     // 채팅방 메시지 조회 API (커서 기반, 최신순 → 오래된순)

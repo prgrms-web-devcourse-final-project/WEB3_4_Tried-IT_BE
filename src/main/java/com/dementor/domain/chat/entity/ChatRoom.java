@@ -18,15 +18,33 @@ public class ChatRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long chatRoomId;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(nullable = false)
-    private LocalDateTime lastMessageAt = LocalDateTime.now();
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RoomType roomType; // MENTORING_CHAT, ADMIN_CHAT
+
+
+
+    @Column(nullable = false) // 채팅방 생성 시간
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
+
+    @Column(nullable = true) //마지막 메시지
+    private LocalDateTime lastMessageAt;
+
+    // 메시지 보낼 때 직접 갱신
+    public void updateLastMessageTime() {
+        this.lastMessageAt = LocalDateTime.now();
+    }
+
+
+
 
     // 관리자 채팅용
     @Column(name = "admin_id")
@@ -34,6 +52,7 @@ public class ChatRoom {
 
     @Column(name = "member_id")
     private Long memberId;
+
 
     // 멘토링 채팅용 (1:1 기준)
     @Column(name = "mentor_id")

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.dementor.domain.chat.entity.ChatRoom;
 import org.springframework.data.domain.Page;
 
 import com.dementor.domain.apply.entity.Apply;
@@ -25,12 +26,14 @@ public class ApplyResponse {
 		private Long applymentId;
 		private Long mentorId; //for. chat 멘토,멘티Id 사용
 		private Long menteeId;
+		private Long chatRoomId;
 
-		public static GetApplyId from(Apply apply) {
+		public static GetApplyId from(Apply apply, ChatRoom room) {
 			return GetApplyId.builder()
 					.applymentId(apply.getId())
 					.mentorId(apply.getMentoringClass().getMentor().getId())
 					.menteeId(apply.getMember().getId())
+					.chatRoomId(room.getChatRoomId())
 					.build();
 		}
 	}
