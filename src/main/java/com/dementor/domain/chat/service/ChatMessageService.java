@@ -13,6 +13,7 @@ import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.lettuce.core.GeoArgs.Unit.m;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
@@ -46,6 +47,9 @@ public class ChatMessageService {
         String nickname = senderType == SenderType.SYSTEM
                 ? "시스템"
                 : chatRoomService.getTargetNickname(chatRoom, senderId);
+
+        log.info("💾 저장할 메시지: chatRoomId={}, senderId={}, nickname={}, content={}",
+                chatRoom.getChatRoomId(), senderId, nickname, dto.getMessage());
 
         // 메시지 생성 및 저장
         ChatMessage message = new ChatMessage();

@@ -33,6 +33,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins("*") // 브라우저 환경에서도 허용
                 .setAllowedOriginPatterns("*") // 필요 시 origin 제한 가능
                 .withSockJS();
+
+        // ✅ 테스트용 인증 없는 WebSocket 엔드포인트 (WebSocket King 전용)
+        registry.addEndpoint("/ws-test")
+                .setAllowedOrigins("*");
     }
 
     @Override

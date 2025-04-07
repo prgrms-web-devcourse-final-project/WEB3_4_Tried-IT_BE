@@ -1,110 +1,143 @@
-//package com.dementor.chat.service;
-//
-//
-//import com.dementor.domain.admin.repository.AdminRepository;
-//import com.dementor.domain.chat.dto.ChatMessageResponseDto;
-//import com.dementor.domain.chat.dto.ChatMessageSendDto;
-//import com.dementor.domain.chat.dto.ChatMessageSliceDto;
-//import com.dementor.domain.chat.entity.ChatMessage;
-//import com.dementor.domain.chat.entity.ChatRoom;
-//import com.dementor.domain.chat.entity.MessageType;
-//import com.dementor.domain.chat.entity.SenderType;
-//import com.dementor.domain.chat.repository.ChatMessageRepository;
-//import com.dementor.domain.chat.repository.ChatRoomRepository;
-//import com.dementor.domain.chat.service.ChatMessageService;
-//import com.dementor.domain.member.entity.Member;
-//import com.dementor.domain.member.repository.MemberRepository;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//
-//import java.time.LocalDateTime;
-//import java.util.List;
-//import java.util.Optional;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.mockito.Mockito.*;
-//
-//public class ChatMessageServiceTest {
-//
-//    private ChatMessageRepository chatMessageRepository;
-//    private ChatRoomRepository chatRoomRepository;
-//    private MemberRepository memberRepository;
-//    private AdminRepository adminRepository;
-//
-//    private ChatMessageService chatMessageService;
-//
-//    @BeforeEach
-//    void setUp() {
-//        chatMessageRepository = mock(ChatMessageRepository.class);
-//        chatRoomRepository = mock(ChatRoomRepository.class);
-//        memberRepository = mock(MemberRepository.class);
-//        adminRepository = mock(AdminRepository.class);
-//
-//        chatMessageService = new ChatMessageService(chatMessageRepository, chatRoomRepository, memberRepository, adminRepository);
-//    }
-//
-//    @Test
-//    void 멤버_메시지_저장_테스트() {
-//        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
-//        Member member = Member.builder().id(100L).nickname("사용자A").build();
-//
-//        ChatMessageSendDto dto = new ChatMessageSendDto();
-//        dto.setChatRoomId(1L);
-//        dto.setType(MessageType.MESSAGE);
-//        dto.setMessage("안녕하세요!");
-//
-//        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
-//        when(memberRepository.findById(100L)).thenReturn(Optional.of(member));
-//
-//        ChatMessageResponseDto result = chatMessageService.handleMessage(dto, 100L, SenderType.MEMBER);
-//
-//        assertThat(result.getMessage()).isEqualTo("안녕하세요!");
-//        assertThat(result.getNickname()).isEqualTo("사용자A");
-//        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
-//    }
-//
-//    @Test
-//    void 관리자_메시지_저장_테스트() {
-//        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
-//
-//        ChatMessageSendDto dto = new ChatMessageSendDto();
-//        dto.setChatRoomId(1L);
-//        dto.setType(MessageType.MESSAGE);
-//        dto.setMessage("관리자입니다");
-//
-//        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
-//
-//        ChatMessageResponseDto result = chatMessageService.handleMessage(dto, 999L, SenderType.ADMIN);
-//
-//        assertThat(result.getMessage()).isEqualTo("관리자입니다");
-//        assertThat(result.getNickname()).isEqualTo("관리자");
-//        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
-//    }
-//
-//    @Test
-//    void 메시지_조회_테스트() {
-//        ChatRoom room = ChatRoom.builder().chatRoomId(1L).build();
-//        Member member = Member.builder().id(100L).nickname("멘티").build();
-//
-//        ChatMessage msg = ChatMessage.builder()
-//                .chatMessageId(10L)
-//                .chatRoom(room)
-//                .senderId(100L)
-//                .senderType(SenderType.MEMBER)
-//                .messageType(MessageType.MESSAGE)
-//                .content("테스트 메시지")
-//                .sentAt(LocalDateTime.now())
-//                .build();
-//
-//        when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(room));
-//        when(chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(1L)).thenReturn(List.of(msg));
-//        when(memberRepository.findById(100L)).thenReturn(Optional.of(member));
-//
-//        ChatMessageSliceDto result = chatMessageService.getMessages(1L, null, 20);
-//
-//        assertThat(result.getMessages()).hasSize(1);
-//        assertThat(result.getMessages().get(0).getMessage()).isEqualTo("테스트 메시지");
-//        assertThat(result.getMessages().get(0).getNickname()).isEqualTo("멘티");
-//    }
-//}
-//
+package com.dementor.chat.service;
+
+import com.dementor.config.TestSecurityConfig;
+import com.dementor.domain.apply.dto.request.ApplyRequest;
+import com.dementor.domain.apply.dto.response.ApplyResponse;
+import com.dementor.domain.apply.service.ApplyService;
+import com.dementor.domain.chat.dto.ChatMessageResponseDto;
+import com.dementor.domain.chat.dto.ChatMessageSendDto;
+import com.dementor.domain.chat.entity.ChatRoom;
+import com.dementor.domain.chat.entity.MessageType;
+import com.dementor.domain.chat.entity.RoomType;
+import com.dementor.domain.chat.entity.SenderType;
+import com.dementor.domain.chat.repository.ChatRoomRepository;
+import com.dementor.domain.chat.service.ChatMessageService;
+import com.dementor.domain.job.entity.Job;
+import com.dementor.domain.job.repository.JobRepository;
+import com.dementor.domain.member.entity.Member;
+import com.dementor.domain.member.entity.UserRole;
+import com.dementor.domain.member.repository.MemberRepository;
+import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.domain.mentoringclass.entity.MentoringClass;
+import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
+@SpringBootTest
+@Transactional
+@ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
+public class ChatMessageServiceTest {
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private ApplyService applyService;
+
+    @Autowired
+    private MentoringClassRepository mentoringClassRepository;
+
+    @Autowired
+    private MentorRepository mentorRepository;
+
+    @Autowired
+    private JobRepository jobRepository;
+
+    private Member testMentor;
+    private Member testMentee;
+    private Long chatRoomId;
+
+    @BeforeEach
+    void setUp() {
+        // 멘토
+        testMentor = Member.builder()
+                .email("mentor@test.com")
+                .password("password")
+                .nickname("testMentor")
+                .name("테스트멘토")
+                .userRole(UserRole.MENTOR)
+                .build();
+        testMentor = memberRepository.save(testMentor);
+
+        // 멘티
+        testMentee = Member.builder()
+                .email("mentee@test.com")
+                .password("password")
+                .nickname("testMentee")
+                .name("테스트멘티")
+                .userRole(UserRole.MENTEE)
+                .build();
+        testMentee = memberRepository.save(testMentee);
+
+        // 직업 & 멘토 & 클래스 생성
+        Job job = jobRepository.save(Job.builder().name("백엔드").build());
+
+        Mentor mentor = mentorRepository.save(Mentor.builder()
+                .member(testMentor)
+                .name("테스트멘토")
+                .job(job)
+                .career(3)
+                .phone("010-0000-0000")
+                .introduction("소개")
+                .build());
+
+        MentoringClass mentoringClass = mentoringClassRepository.save(
+                MentoringClass.builder()
+                        .mentor(mentor)
+                        .title("테스트 클래스")
+                        .content("설명")
+                        .price(10000)
+                        .stack("Java")
+                        .build()
+        );
+
+        // 멘토링 신청 → 내부적으로 채팅방 생성됨
+        ApplyRequest.ApplyCreateRequest request = new ApplyRequest.ApplyCreateRequest();
+        request.setClassId(mentoringClass.getId());
+        request.setInquiry("신청합니다");
+        request.setSchedule(LocalDateTime.now().plusDays(1));
+
+        ApplyResponse.GetApplyId response = applyService.createApply(request, testMentee.getId());
+        this.chatRoomId = response.getChatRoomId();
+    }
+
+    @Test
+    @DisplayName("멘토링 채팅방에 메시지 전송 성공")
+    void sendMessageToMentoringChatRoom() {
+        // given
+        ChatMessageSendDto dto = new ChatMessageSendDto();
+        dto.setChatRoomId(chatRoomId);
+        dto.setType(MessageType.MESSAGE);
+        dto.setMessage("안녕하세요, 테스트 메시지입니다.");
+
+        // when
+        ChatMessageResponseDto result = chatMessageService.handleMessage(dto, testMentor.getId(), SenderType.MEMBER);
+
+        // then
+        assertThat(result.getChatRoomId()).isEqualTo(chatRoomId);
+        assertThat(result.getSenderId()).isEqualTo(testMentor.getId());
+        assertThat(result.getNickname()).isEqualTo("testMentee");
+        assertThat(result.getMessage()).isEqualTo("안녕하세요, 테스트 메시지입니다.");
+        assertThat(result.getSentAt()).isNotNull();
+    }
+}
