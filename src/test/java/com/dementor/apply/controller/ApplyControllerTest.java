@@ -72,7 +72,7 @@ public class ApplyControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		// 테스트용 멘티 생성
+		 //테스트용 멘티 생성
 		testMentee = Member.builder()
 			.nickname("testMentee")
 			.password("password")
@@ -83,7 +83,7 @@ public class ApplyControllerTest {
 		memberRepository.save(testMentee);
 		menteePrincipal = CustomUserDetails.of(testMentee);
 
-		// 테스트용 멘토 생성
+		//테스트용 멘토 생성
 		testMentor = Member.builder()
 			.nickname("testMentor")
 			.password("password")
@@ -98,8 +98,8 @@ public class ApplyControllerTest {
 			.name("백엔드")
 			.build();
 		job = jobRepository.save(job);
-		
-		// 멘토 객체 생성
+
+		//멘토 객체 생성
 		Mentor mentor = Mentor.builder()
 			.member(testMentor)
 			.name("테스트멘토")
@@ -116,13 +116,14 @@ public class ApplyControllerTest {
 			.build();
 		mentor = mentorRepository.save(mentor);
 
-		// 멘토링 클래스 생성
-		testMentoringClass = new MentoringClass();
-		testMentoringClass.setTitle("테스트 멘토링");
-		testMentoringClass.setStack("Java, Spring");
-		testMentoringClass.setContent("테스트 멘토링 내용입니다");
-		testMentoringClass.setPrice(50000);
-		testMentoringClass.setMentor(mentor);
+		//멘토링 클래스 생성
+		testMentoringClass = MentoringClass.builder()
+			.title("테스트 멘토링 클래스")
+			.stack("Java, Spring")
+			.content("테스트 멘토링 내용입니다")
+			.price(50000)
+			.mentor(mentor)
+			.build();
 
 		testMentoringClass = mentoringClassRepository.save(testMentoringClass);
 		testMentoringClassId = testMentoringClass.getId();
@@ -154,7 +155,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.isSuccess").value(true))
 			.andExpect(jsonPath("$.code").value("201"))
 			.andExpect(jsonPath("$.message").value("멘토링 신청이 완료되었습니다"))
-			.andExpect(jsonPath("$.data.applymentId").exists());
+			.andExpect(jsonPath("$.data.applyId").exists());
 	}
 
 	@Test
@@ -162,7 +163,7 @@ public class ApplyControllerTest {
 	@WithMockUser(roles = "MENTOR")
 	void createApply2() throws Exception {
 
-		// 자신의 클래스는 신청이 안되게 예외 처리를 해서 다른 멘토의 클래스를 생성 후 신청
+		//자신의 클래스는 신청이 안되게 예외 처리를 해서 다른 멘토의 클래스를 생성 후 신청
 		Member otherMentor = Member.builder()
 			.email("othermento@test.com")
 			.password("password")
@@ -189,16 +190,18 @@ public class ApplyControllerTest {
 			.build();
 		mentorRepository.save(mentor);
 
-		// 다른 멘토의 클래스 생성
-		MentoringClass otherClass = new MentoringClass();
-		otherClass.setTitle("다른 멘토링 클래스");
-		otherClass.setStack("Java, Spring");
-		otherClass.setContent("다른 멘토링 내용입니다");
-		otherClass.setPrice(40000);
-		otherClass.setMentor(mentor);
-		Long otherClassId = mentoringClassRepository.save(otherClass).getId();
+		 //다른 멘토의 클래스 생성
+		MentoringClass otherMentoringClass = MentoringClass.builder()
+			.title("다른 멘토의 클래스")
+			.stack("Java, Spring")
+			.content("다른 멘토의 클래스 내용입니다")
+			.price(50000)
+			.mentor(mentor)
+			.build();
+		otherMentoringClass = mentoringClassRepository.save(otherMentoringClass);
+		Long otherClassId = otherMentoringClass.getId();
 
-		// 신청 요청 생성 (다른 멘토의 클래스에 신청)
+		 //신청 요청 생성 (다른 멘토의 클래스에 신청)
 		ApplyCreateRequest request = new ApplyCreateRequest();
 		request.setClassId(otherClassId);
 		request.setInquiry("멘토의 테스트 문의입니다");
@@ -219,7 +222,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.isSuccess").value(true))
 			.andExpect(jsonPath("$.code").value("201"))
 			.andExpect(jsonPath("$.message").value("멘토링 신청이 완료되었습니다"))
-			.andExpect(jsonPath("$.data.applymentId").exists());
+			.andExpect(jsonPath("$.data.applyId").exists());
 	}
 
 	@Test
@@ -295,7 +298,7 @@ public class ApplyControllerTest {
 			applyRepository.save(apply);
 		}
 
-		// 1페이지 조회 테스트
+		 //1페이지 조회 테스트
 		ResultActions resultActions = mvc
 			.perform(
 				get("/api/apply")
@@ -320,7 +323,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
 
-		// 2페이지
+		 //2페이지
 		ResultActions page2Results = mvc
 			.perform(
 				get("/api/apply")
@@ -348,7 +351,7 @@ public class ApplyControllerTest {
 	@DisplayName("멘토링 신청 목록 조회 테스트 - 멘토")
 	@WithMockUser(roles = "MENTOR")
 	void getApplyListTest2() throws Exception {
-		
+
 		for (int i = 0; i < 15; i++) {
 			Apply apply = Apply.builder()
 				.mentoringClass(testMentoringClass)
@@ -359,8 +362,8 @@ public class ApplyControllerTest {
 				.build();
 			applyRepository.save(apply);
 		}
-		
-		// 1페이지
+
+		 //1페이지
 		ResultActions resultActions = mvc
 			.perform(
 				get("/api/apply")
@@ -384,8 +387,8 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.size").value(10))
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
-			
-		// 2페이지
+
+		 //2페이지
 		ResultActions page2Results = mvc
 			.perform(
 				get("/api/apply")

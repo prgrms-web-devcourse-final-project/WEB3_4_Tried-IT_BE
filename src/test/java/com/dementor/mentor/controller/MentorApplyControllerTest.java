@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +35,7 @@ import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 import com.dementor.global.security.CustomUserDetails;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,13 +61,19 @@ public class MentorApplyControllerTest {
 	@Autowired
 	private ApplyRepository applyRepository;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	private CustomUserDetails mentorPrincipal;
 	private List<Apply> testApplies = new ArrayList<>();
+	private Member testMentee;
+	private MentoringClass testMentoringClass;
+	private Member testMentor;
 
 	@BeforeEach
 	void setUp() {
 		// 테스트용 멘토 생성
-		Member testMentor = Member.builder()
+		testMentor = Member.builder()
 			.email("mentor@test.com")
 			.password("password")
 			.nickname("testMentor")
@@ -76,7 +84,7 @@ public class MentorApplyControllerTest {
 		mentorPrincipal = CustomUserDetails.of(testMentor);
 
 		// 테스트용 멘티 생성
-		Member testMentee = Member.builder()
+		testMentee = Member.builder()
 			.email("mentee@test.com")
 			.password("password")
 			.nickname("testMentee")
@@ -103,24 +111,24 @@ public class MentorApplyControllerTest {
 			.bestFor("테스트 특기")
 			.introduction("테스트 멘토 소개")
 			.approvalStatus(Mentor.ApprovalStatus.APPROVED)
-			.modificationStatus(Mentor.ModificationStatus.NONE)  
+			.modificationStatus(Mentor.ModificationStatus.NONE)
 			.build();
 		mentor = mentorRepository.save(mentor);
 
 		// 멘토링 클래스 생성
-		MentoringClass mentoringClass = MentoringClass.builder()
+		testMentoringClass = MentoringClass.builder()
 			.title("테스트 멘토링")
 			.content("테스트 내용")
 			.price(50000)
 			.stack("Java, Spring")
 			.mentor(mentor)
 			.build();
-		mentoringClass = mentoringClassRepository.save(mentoringClass);
+		testMentoringClass = mentoringClassRepository.save(testMentoringClass);
 
 
 		for (int i = 0; i < 15; i++) {
 			Apply apply = Apply.builder()
-				.mentoringClass(mentoringClass)
+				.mentoringClass(testMentoringClass)
 				.member(testMentee)
 				.inquiry("테스트 신청 " + i)
 				.applyStatus(ApplyStatus.PENDING)
@@ -151,7 +159,7 @@ public class MentorApplyControllerTest {
 			.andExpect(jsonPath("$.data.applyments").exists())
 			.andExpect(jsonPath("$.data.applyments").isArray())
 			.andExpect(jsonPath("$.data.applyments.length()").value(10))
-			.andExpect(jsonPath("$.data.applyments[0].applymentId").exists())
+			.andExpect(jsonPath("$.data.applyments[0].applyId").exists())
 			.andExpect(jsonPath("$.data.applyments[0].memberId").exists())
 			.andExpect(jsonPath("$.data.applyments[0].nickname").exists())
 			.andExpect(jsonPath("$.data.pagination").exists())
@@ -217,4 +225,122 @@ public class MentorApplyControllerTest {
 			.andExpect(jsonPath("$.message").value("승인되지 않은 멘토는 신청 목록을 조회할 수 없습니다"))
 			.andDo(print());
 	}
+
+	@Test
+	@DisplayName("멘토링 신청 승인 테스트")
+	@WithMockUser(roles = "MENTOR")
+	void approveApply() throws Exception {
+		// 1번 신청을 승인
+		Long applyId = testApplies.get(0).getId();
+
+		String requestJson = "{\"status\": \"APPROVED\"}";
+
+		mvc.perform(
+				put("/api/mentor/apply/" + applyId + "/status")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(requestJson)
+					.with(user(mentorPrincipal))
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.message").value("멘토링 신청이 승인되었습니다."))
+			.andExpect(jsonPath("$.data.applymentId").value(applyId))
+			.andExpect(jsonPath("$.data.status").value("APPROVED"))
+			.andDo(print());
+
+		// DB에 실제로 변경되었는지 확인
+		Apply updatedApply = applyRepository.findById(applyId).orElseThrow();
+		assert updatedApply.getApplyStatus() == ApplyStatus.APPROVED;
+	}
+
+	@Test
+	@DisplayName("멘토링 신청 거절 테스트")
+	@WithMockUser(roles = "MENTOR")
+	void rejectApply() throws Exception {
+		// 2번 신청을 거절
+		Long applyId = testApplies.get(1).getId();
+
+		String requestJson = "{\"status\": \"REJECTED\"}";
+
+		mvc.perform(
+				put("/api/mentor/apply/" + applyId + "/status")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(requestJson)
+					.with(user(mentorPrincipal))
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.message").value("멘토링 신청이 거절되었습니다."))
+			.andExpect(jsonPath("$.data.applymentId").value(applyId))
+			.andExpect(jsonPath("$.data.status").value("REJECTED"))
+			.andDo(print());
+
+		// DB에 실제로 변경되었는지 확인
+		Apply updatedApply = applyRepository.findById(applyId).orElseThrow();
+		assert updatedApply.getApplyStatus() == ApplyStatus.REJECTED;
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 신청 상태 변경 시도")
+	@WithMockUser(roles = "MENTOR")
+	void updateNonExistingApply() throws Exception {
+		Long nonExistingApplyId = 9999L;
+
+		String requestJson = "{\"status\": \"APPROVED\"}";
+
+		mvc.perform(
+				put("/api/mentor/apply/" + nonExistingApplyId + "/status")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(requestJson)
+					.with(user(mentorPrincipal))
+			)
+			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.message").value("존재하지 않는 신청입니다."))
+			.andDo(print());
+	}
+
+	@Test
+	@DisplayName("승인되지 않은 멘토가 상태 변경 시도")
+	@WithMockUser(roles = "MENTOR")
+	void updateStatusByUnapprovedMentor() throws Exception {
+		// 승인되지 않은 멘토 생성
+		Member unapprovedMentorMember = Member.builder()
+			.email("unapproved@test.com")
+			.password("password")
+			.nickname("unapprovedMentor")
+			.name("미승인멘토")
+			.userRole(UserRole.MENTOR)
+			.build();
+		unapprovedMentorMember = memberRepository.save(unapprovedMentorMember);
+
+		Job job = jobRepository.findAll().get(0);
+
+		Mentor unapprovedMentor = Mentor.builder()
+			.member(unapprovedMentorMember)
+			.name("미승인멘토")
+			.job(job)
+			.career(1)
+			.phone("010-9999-8888")
+			.introduction("미승인 멘토 소개")
+			.approvalStatus(Mentor.ApprovalStatus.PENDING)
+			.build();
+		mentorRepository.save(unapprovedMentor);
+
+		CustomUserDetails unapprovedMentorPrincipal = CustomUserDetails.of(unapprovedMentorMember);
+
+		Long applyId = testApplies.get(0).getId();
+		String requestJson = "{\"status\": \"APPROVED\"}";
+
+		mvc.perform(
+				put("/api/mentor/apply/" + applyId + "/status")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(requestJson)
+					.with(user(unapprovedMentorPrincipal))
+			)
+			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.code").value(403))
+			.andExpect(jsonPath("$.message").value("승인되지 않은 멘토는 신청 상태를 변경할 수 없습니다"))
+			.andDo(print());
+	}
+
 }

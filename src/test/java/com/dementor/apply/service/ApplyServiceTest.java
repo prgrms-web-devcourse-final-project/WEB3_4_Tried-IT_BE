@@ -21,15 +21,16 @@ import com.dementor.domain.apply.exception.ApplyErrorCode;
 import com.dementor.domain.apply.exception.ApplyException;
 import com.dementor.domain.apply.repository.ApplyRepository;
 import com.dementor.domain.apply.service.ApplyService;
+import com.dementor.domain.job.entity.Job;
+import com.dementor.domain.job.repository.JobRepository;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.domain.mentoringclass.entity.MentoringClass;
-import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.domain.mentor.repository.MentorRepository;
-import com.dementor.domain.job.entity.Job;
-import com.dementor.domain.job.repository.JobRepository;
+import com.dementor.domain.mentoringclass.entity.MentoringClass;
+import com.dementor.domain.mentoringclass.exception.MentoringClassException;
+import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 
 @SpringBootTest
 @Transactional
@@ -61,7 +62,7 @@ public class ApplyServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		// 테스트 멘티 생성
+		 //테스트 멘티 생성
 		testMember = Member.builder()
 			.email("test@test.com")
 			.password("password")
@@ -71,7 +72,7 @@ public class ApplyServiceTest {
 			.build();
 		testMember = memberRepository.save(testMember);
 
-		// 테스트용 멘토 추가
+		 //테스트용 멘토 추가
 		testMentor = Member.builder()
 			.email("mentor@test.com")
 			.password("password")
@@ -80,14 +81,14 @@ public class ApplyServiceTest {
 			.userRole(UserRole.MENTOR)
 			.build();
 		testMentor = memberRepository.save(testMentor);
-		
-		// Job 생성
+
+		//Job 생성
 		Job job = Job.builder()
 			.name("백엔드")
 			.build();
 		job = jobRepository.save(job);
-		
-		// 멘토 객체 생성
+
+		 //멘토 객체 생성
 		Mentor mentor = Mentor.builder()
 			.member(testMentor)
 			.job(job)
@@ -103,14 +104,15 @@ public class ApplyServiceTest {
 			.build();
 		mentor = mentorRepository.save(mentor);
 
-		// 멘토링 클래스 생성
-		MentoringClass mentoring = new MentoringClass();
-		mentoring.setTitle("테스트 멘토링");
-		mentoring.setContent("테스트 내용");
-		mentoring.setPrice(10000);
-		mentoring.setStack("Java");
-		mentoring.setMentor(mentor); // 멘토 설정
-		
+		 //멘토링 클래스 생성
+		MentoringClass mentoring = MentoringClass.builder()
+			.title("테스트 멘토링")
+			.stack("Java, Spring")
+			.content("테스트 멘토링 내용")
+			.price(10000)
+			.mentor(mentor)
+			.build();
+
 		this.mentoringClass = mentoringClassRepository.save(mentoring);
 		this.mentoringClassId = this.mentoringClass.getId();
 	}
@@ -129,10 +131,10 @@ public class ApplyServiceTest {
 
 
 		assertNotNull(result);
-		assertNotNull(result.getApplymentId());
+		assertNotNull(result.getApplyId());
 
 
-		Apply savedApply = applyRepository.findById(result.getApplymentId()).orElse(null);
+		Apply savedApply = applyRepository.findById(result.getApplyId()).orElse(null);
 		assertNotNull(savedApply);
 		assertEquals("테스트 문의입니다", savedApply.getInquiry());
 		assertEquals(ApplyStatus.PENDING, savedApply.getApplyStatus());
@@ -149,7 +151,7 @@ public class ApplyServiceTest {
 		request.setSchedule(LocalDateTime.now().plusDays(1));
 
 
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(MentoringClassException.class, () -> {
 			applyService.createApply(request, testMember.getId());
 		});
 	}
@@ -181,7 +183,7 @@ public class ApplyServiceTest {
 		request.setSchedule(LocalDateTime.now().plusDays(1));
 
 		ApplyIdResponse result = applyService.createApply(request, testMember.getId());
-		Long applyId = result.getApplymentId();
+		Long applyId = result.getApplyId();
 
 		applyService.deleteApply(applyId, testMember.getId());
 
@@ -200,7 +202,7 @@ public class ApplyServiceTest {
 		request.setSchedule(LocalDateTime.now().plusDays(1));
 
 		ApplyIdResponse result = applyService.createApply(request, testMember.getId());
-		Long applyId = result.getApplymentId();
+		Long applyId = result.getApplyId();
 
 		Member anotherMember = Member.builder()
 			.email("another@test.com")

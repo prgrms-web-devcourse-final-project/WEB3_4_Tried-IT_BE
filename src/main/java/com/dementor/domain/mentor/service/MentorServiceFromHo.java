@@ -21,7 +21,7 @@ public class MentorServiceFromHo {
                 .flatMap(mentor -> mentor.getMentorings().stream())
                 .map(mentoringClass -> new MyMentoringResponse(
                         mentoringClass.getId(),
-                        mentoringClass.getStack().split(","),
+                        mentoringClass.getStack(),
                         mentoringClass.getContent(),
                         mentoringClass.getTitle(),
                         mentoringClass.getPrice()

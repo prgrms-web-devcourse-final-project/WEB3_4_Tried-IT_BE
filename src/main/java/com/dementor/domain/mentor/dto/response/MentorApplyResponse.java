@@ -17,7 +17,7 @@ public class MentorApplyResponse {
 	@Getter
 	@Builder
 	public static class ApplyMenteeDto {
-		private Long applymentId;
+		private Long applyId;
 		private Long classId;
 		private Long memberId;     // 멘티 ID
 		private String nickname;   // 멘티 닉네임
@@ -27,7 +27,7 @@ public class MentorApplyResponse {
 
 		public static ApplyMenteeDto from(Apply apply) {
 			return ApplyMenteeDto.builder()
-				.applymentId(apply.getId())
+				.applyId(apply.getId())
 				.classId(apply.getMentoringClass().getId())
 				.memberId(apply.getMember().getId())
 				.nickname(apply.getMember().getNickname())

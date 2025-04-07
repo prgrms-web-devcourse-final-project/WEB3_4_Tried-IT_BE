@@ -117,7 +117,6 @@ public class TokenService {
 
 	public void logout(String userEmail) {
 		refreshTokenRepository.deleteByUserIdentifier(userEmail);
-
 	}
 
 }

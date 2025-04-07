@@ -4,13 +4,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
+
 @Component
 public class CookieUtil {
 
 	@Value("${jwt.cookie.access-cookie.name}")
+	@Getter
 	private String accessCookieName;
 
 	@Value("${jwt.cookie.refresh-cookie.name}")
+	@Getter
 	private String refreshCookieName;
 
 	@Value("${jwt.cookie.max-age-seconds}")

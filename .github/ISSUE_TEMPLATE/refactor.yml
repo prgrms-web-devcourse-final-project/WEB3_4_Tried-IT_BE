@@ -1,0 +1,33 @@
+name: 리팩토링
+description: 코드 리팩토링 관련 이슈
+title: "[리팩토링] "
+labels: ["refactor"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        리팩토링 이슈를 생성해주세요.
+  - type: textarea
+    id: what
+    attributes:
+      label: 리팩토링 대상
+      description: 어떤 부분을 리팩토링 하실 건가요?
+      placeholder: "예: UserService의 중복 코드 제거"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 리팩토링 이유
+      description: 왜 리팩토링이 필요한가요?
+      placeholder: "예: 코드 중복이 많아 유지보수가 어려움"
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: 리팩토링 방법
+      description: 어떻게 리팩토링 하실 계획인가요?
+      placeholder: "예: 공통 메서드 추출 및 인터페이스 도입"
+    validations:
+      required: true 

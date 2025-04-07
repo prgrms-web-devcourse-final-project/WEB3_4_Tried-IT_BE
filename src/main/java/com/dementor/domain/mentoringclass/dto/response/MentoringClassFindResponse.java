@@ -39,7 +39,7 @@ public record MentoringClassFindResponse(
                         mentoringClass.getMentor().getJob().getName(),
                         mentoringClass.getMentor().getCareer()
                 ),
-                mentoringClass.getStack().split(","),
+                mentoringClass.getStack(),
                 mentoringClass.getContent(),
                 mentoringClass.getTitle(),
                 mentoringClass.getPrice()

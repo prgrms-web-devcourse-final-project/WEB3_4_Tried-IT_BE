@@ -52,5 +52,8 @@ public class Apply {
 	@ManyToOne
 	private MentoringClass mentoringClass;
 
-
+	// 상태 변경 메서드
+	public void updateStatus(ApplyStatus status) {
+		this.applyStatus = status;
+	}
 }

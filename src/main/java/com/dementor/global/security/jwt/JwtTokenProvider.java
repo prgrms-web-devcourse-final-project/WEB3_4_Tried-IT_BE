@@ -20,6 +20,7 @@ import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.global.security.CustomUserDetails;
+import com.dementor.global.security.jwt.repository.RefreshTokenRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -40,22 +41,28 @@ public class JwtTokenProvider implements InitializingBean {
 	@Value("${jwt.secret}")
 	private final String secret;
 
-	@Value("${jwt.expiration}")
-	private final long tokenValidityInMilliseconds;
+	@Value("${jwt.access.expiration}")
+	private final long accessTokenValidityInMilliseconds;
 
 	@Getter
 	@Value("${jwt.refresh.expiration}")
-	private long refreshTokenValidityInMilliseconds;
+	private final long refreshTokenValidityInMilliseconds;
 
 	@Getter
 	private Key key;
 
+	private final RefreshTokenRepository refreshTokenRepository;
+
 	public JwtTokenProvider(
 			@Value("${jwt.secret}") String secret,
-			@Value("${jwt.expiration}") long tokenValidityInMilliseconds
+			@Value("${jwt.access.expiration}") long accessTokenValidityInMilliseconds,
+			@Value("${jwt.refresh.expiration}") long refreshTokenValidityInMilliseconds,
+			RefreshTokenRepository refreshTokenRepository
 	) {
 		this.secret = secret;
-		this.tokenValidityInMilliseconds = tokenValidityInMilliseconds;
+		this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds;
+		this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
+		this.refreshTokenRepository = refreshTokenRepository;
 	}
 
 	@Override
@@ -66,15 +73,18 @@ public class JwtTokenProvider implements InitializingBean {
 
 	// 리프레시 토큰 생성
 	public String createRefreshToken(String userIdentifier, RefreshToken_Role role) {
-		long now = (new Date()).getTime();
 
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("sub", role.name());
+
+		long now = (new Date()).getTime();
+		Date vaildity = new Date(now + refreshTokenValidityInMilliseconds);
 
 		return Jwts.builder()
 			.setClaims(claims)
 			.setSubject(userIdentifier)
 			.setIssuedAt(new Date(now))
+			.setExpiration(vaildity)
 			.signWith(key, SignatureAlgorithm.HS512)
 			.compact();
 	}
@@ -103,7 +113,7 @@ public class JwtTokenProvider implements InitializingBean {
 		claims.put("sub", authentication.getName());
 
 		long now = (new Date()).getTime();
-		Date vaildity = new Date(now + tokenValidityInMilliseconds);
+		Date vaildity = new Date(now + accessTokenValidityInMilliseconds);
 
 		return Jwts.builder()
 			.setClaims(claims)
@@ -123,7 +133,7 @@ public class JwtTokenProvider implements InitializingBean {
 		claims.put("sub", "admin");
 
 		long now = (new Date()).getTime();
-		Date validity = new Date(now + tokenValidityInMilliseconds);
+		Date validity = new Date(now + accessTokenValidityInMilliseconds);
 
 		return Jwts.builder()
 			.setClaims(claims)
@@ -230,12 +240,23 @@ public class JwtTokenProvider implements InitializingBean {
 
 	public boolean validateRefreshToken(String token) {
 		try {
+			// 1. JWT 서명 검증
 			Jws<Claims> claims = Jwts.parserBuilder()
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
 
-			return !claims.getBody().getExpiration().before(new Date());
+			// 2. 만료 시간 검증
+			if (claims.getBody().getExpiration().before(new Date())) {
+				return false;
+			}
+
+			// 3. Redis에 저장된 토큰과 비교
+			String userIdentifier = claims.getBody().getSubject();
+			String storedToken = refreshTokenRepository.findByUserIdentifier(userIdentifier)
+				.orElse(null);
+
+			return token.equals(storedToken);
 		} catch (Exception e) {
 			return false;
 		}

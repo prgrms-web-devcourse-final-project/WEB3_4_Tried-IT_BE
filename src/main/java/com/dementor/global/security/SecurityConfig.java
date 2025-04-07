@@ -17,10 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsUtils;
 
+import com.dementor.global.security.cookie.CookieUtil;
 import com.dementor.global.security.jwt.JwtAccessDeniedHandler;
 import com.dementor.global.security.jwt.JwtAuthenticationEntryPoint;
 import com.dementor.global.security.jwt.JwtAuthenticationFilter;
 import com.dementor.global.security.jwt.JwtTokenProvider;
+import com.dementor.global.security.jwt.service.TokenService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +35,8 @@ public class SecurityConfig {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+	private final TokenService tokenService;
+	private final CookieUtil cookieUtil;
 
 	// 쿠키 이름을 위한 값 추가
 	@Value("${jwt.cookie.name}")
@@ -41,7 +45,6 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
-
 			.csrf(AbstractHttpConfigurer::disable)
 
 			.exceptionHandling(exceptionHandling -> exceptionHandling
@@ -49,8 +52,7 @@ public class SecurityConfig {
 				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 			)
 
-			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-
+			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -83,8 +85,8 @@ public class SecurityConfig {
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, cookieName), UsernamePasswordAuthenticationFilter.class);
-		;
+			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, tokenService, cookieUtil), UsernamePasswordAuthenticationFilter.class);
+
 		return http.build();
 	}
 

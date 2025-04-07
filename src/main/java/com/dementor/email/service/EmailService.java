@@ -8,6 +8,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.dementor.domain.member.exception.MemberErrorCode;
+import com.dementor.domain.member.exception.MemberException;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +61,10 @@ public class EmailService {
 		if (storedCode != null && storedCode.equals(inputCode)) {
 			//redisTemplate.delete("email:" + email); 회원가입 시 인증코드로 검증 과정 필요
 			return true;
-
+		}else{
+			throw new MemberException(MemberErrorCode.INVALID_VERIFICATION_CODE);
 		}
-		return false; //TODO : 예외처리로 변환
+
 	}
 
 }

@@ -8,11 +8,11 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ApplyIdResponse {
-	private Long applymentId;
+	private Long applyId;
 
 	public static ApplyIdResponse from(Apply apply) {
 		return ApplyIdResponse.builder()
-			.applymentId(apply.getId())
+			.applyId(apply.getId())
 			.build();
 	}
 }

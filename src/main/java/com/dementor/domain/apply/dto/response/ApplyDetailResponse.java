@@ -12,7 +12,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ApplyDetailResponse {
-	private Long applymentId;
+	private Long applyId;
 	private Long classId;
 	private Long mentorId; //멘토 아이디
 	private String name; //멘토 이름
@@ -22,7 +22,7 @@ public class ApplyDetailResponse {
 
 	public static ApplyDetailResponse from(Apply apply) {
 		return ApplyDetailResponse.builder()
-			.applymentId(apply.getId())
+			.applyId(apply.getId())
 			.classId(apply.getMentoringClass().getId())
 			.mentorId(apply.getMentoringClass().getMentor().getId())
 			.name(apply.getMentoringClass().getMentor().getName())

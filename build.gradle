@@ -57,8 +57,6 @@ dependencies {
     //fixture monkey
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.0.0'
 
-    // spring hateoas
-    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 }
 
 tasks.named('test') {

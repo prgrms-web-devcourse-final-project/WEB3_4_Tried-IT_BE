@@ -32,7 +32,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -100,7 +99,6 @@ public class MentoringClassTest {
                 .content("테스트용 수업 내용")
                 .price(50000)
                 .mentor(mentorEntity)
-                .schedules(new ArrayList<>())  // schedules 리스트 초기화
                 .build();
         mentoringClass = mentoringClassRepository.save(mentoringClass);
         testClassId = mentoringClass.getId();
@@ -108,13 +106,9 @@ public class MentoringClassTest {
         Schedule schedule = Schedule.builder()
                 .dayOfWeek(DayOfWeek.MONDAY)
                 .time("10:00-11:00")
-                .mentoringClass(mentoringClass)
+                .mentoringClassId(testClassId)
                 .build();
         schedule = scheduleRepository.save(schedule);
-
-        // 양방향 연관관계 설정
-        mentoringClass.getSchedules().add(schedule);
-        mentoringClass = mentoringClassRepository.save(mentoringClass);
 
         // Security Context에 인증 정보 설정
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -141,10 +135,10 @@ public class MentoringClassTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.message").value("멘토링 수업 조회 성공"))
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.data.page.totalElements").isNumber())
-                .andExpect(jsonPath("$.data.page.totalPages").isNumber())
-                .andExpect(jsonPath("$.data.page.size").value(10))
-                .andExpect(jsonPath("$.data.page.number").value(0));
+                .andExpect(jsonPath("$.data.totalElements").isNumber())
+                .andExpect(jsonPath("$.data.totalPages").isNumber())
+                .andExpect(jsonPath("$.data.size").value(10))
+                .andExpect(jsonPath("$.data.number").value(0));
     }
 
     @Test

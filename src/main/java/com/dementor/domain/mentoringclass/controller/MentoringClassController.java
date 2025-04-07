@@ -1,23 +1,5 @@
 package com.dementor.domain.mentoringclass.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.dementor.domain.mentoringclass.dto.SortDirection;
 import com.dementor.domain.mentoringclass.dto.request.MentoringClassCreateRequest;
 import com.dementor.domain.mentoringclass.dto.request.MentoringClassUpdateRequest;
 import com.dementor.domain.mentoringclass.dto.response.MentoringClassDetailResponse;
@@ -25,12 +7,18 @@ import com.dementor.domain.mentoringclass.dto.response.MentoringClassFindRespons
 import com.dementor.domain.mentoringclass.dto.response.MentoringClassUpdateResponse;
 import com.dementor.domain.mentoringclass.service.MentoringClassService;
 import com.dementor.global.ApiResponse;
+import com.dementor.global.common.pagination.PaginationUtil;
 import com.dementor.global.security.CustomUserDetails;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "멘토링 수업", description = "멘토링 수업 관리")
 @RestController
@@ -38,56 +26,49 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class MentoringClassController {
+    /*
+     * TODO : 예외처리 계층화, 공통 로직 분리(페이징 끝), 엔티티 수정(setter 삭제), onetomany 삭제 (멘토링 - 스케줄)
+     *
+     * */
+
     private final MentoringClassService mentoringClassService;
-    private final PagedResourcesAssembler<MentoringClassFindResponse> pagedResourcesAssembler;
 
     @Operation(summary = "멘토링 수업 전체 조회", description = "모든 멘토링 수업을 조회합니다.")
     @GetMapping
-    public ApiResponse<?> getClass(
+    public ApiResponse<Page<MentoringClassFindResponse>> getClass(
             @RequestParam(required = false) Long jobId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") SortDirection order
+            Pageable pageable
     ) {
-        Page<MentoringClassFindResponse> result = mentoringClassService.findAllClass(jobId, page, size, sortBy, order);
-        PagedModel<EntityModel<MentoringClassFindResponse>> pagedModel = pagedResourcesAssembler.toModel(result);
+        Pageable domainPageable = PaginationUtil.getMentoringClassPageable(pageable);
+
+        Page<MentoringClassFindResponse> result = mentoringClassService.findAllClass(jobId, domainPageable);
 
         return ApiResponse.of(
                 true,
                 HttpStatus.OK,
                 "멘토링 수업 조회 성공",
-                pagedModel
+                result
         );
     }
 
-    // TODO : /api/mentor/class/{mentor_id} 멘토 도메인으로 옮겨야 함.
-//    @Operation(summary = "멘토가 등록한 수업 조회", description = "멘토가 자신의 수업을 조회합니다.")
-//    @GetMapping("/{mentor_id}")
-//    public ApiResponse<?> getClassByMentorId(
-//        @PathVariable(required = false) Long mentorId
-//    ) {
-//        return null;
-//    }
-
     @Operation(summary = "멘토링 수업 상세 조회", description = "특정 멘토링 수업의 상세 정보를 조회합니다.")
     @GetMapping("/{classId}")
-    public ApiResponse<?> getClassById(
+    public ApiResponse<MentoringClassDetailResponse> getClassById(
             @PathVariable Long classId
     ) {
-        MentoringClassDetailResponse mentoringClass = mentoringClassService.findOneClass(classId);
+        MentoringClassDetailResponse response = mentoringClassService.findOneClass(classId);
         return ApiResponse.of(
                 true,
                 HttpStatus.OK,
                 "멘토링 수업 상세 조회 성공",
-                mentoringClass
+                response
         );
     }
 
     @Operation(summary = "멘토링 수업 등록", description = "멘토가 멘토링 수업을 등록합니다.")
     @PreAuthorize("hasRole('MENTOR')")
     @PostMapping
-    public ApiResponse<?> createClass(
+    public ApiResponse<MentoringClassDetailResponse> createClass(
             @RequestBody MentoringClassCreateRequest request,
             Authentication authentication
     ) {
@@ -106,7 +87,7 @@ public class MentoringClassController {
     @Operation(summary = "멘토링 수업 수정", description = "멘토링 수업 정보를 수정합니다.")
     @PreAuthorize("hasRole('MENTOR')")
     @PutMapping("/{classId}")
-    public ApiResponse<?> updateClass(
+    public ApiResponse<MentoringClassUpdateResponse> updateClass(
             @PathVariable Long classId,
             @RequestBody MentoringClassUpdateRequest request,
             Authentication authentication

@@ -35,26 +35,26 @@ public class ApplyController {
 	@Operation(summary = "멘토링 신청", description = "멘토링을 신청합니다")
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<ApplyIdResponse> createApply(
+	public ApiResponse<ApplyIdResponse>  createApply(
 		@RequestBody ApplyCreateRequest req,
 		@AuthenticationPrincipal CustomUserDetails userDetails
 	) {
-		ApplyIdResponse response = applyService.createApply(req, userDetails.getId());
+			ApplyIdResponse response = applyService.createApply(req, userDetails.getId());
 
-		return ApiResponse.of(true, HttpStatus.CREATED, "멘토링 신청이 완료되었습니다", response);
+			return ApiResponse.of(true, HttpStatus.CREATED, "멘토링 신청이 완료되었습니다", response);
 	}
 
 
 	@Operation(summary = "멘토링 신청 취소", description = "멘토링 신청을 취소합니다")
 	@DeleteMapping("/{applyId}")
-	@ResponseStatus(HttpStatus.OK)
 	public ApiResponse<Void> deleteApply(
 		@PathVariable(name = "applyId") Long applyId,
 		@AuthenticationPrincipal CustomUserDetails userDetails
 	) {
-		applyService.deleteApply(applyId, userDetails.getId());
+			applyService.deleteApply(applyId, userDetails.getId());
 
-		return ApiResponse.of(true, HttpStatus.OK, "멘토링 신청이 취소되었습니다");
+			return ApiResponse.of(true, HttpStatus.OK, "멘토링 신청이 취소되었습니다");
+
 	}
 
 
@@ -69,5 +69,4 @@ public class ApplyController {
 		ApplyPageResponse response = applyService.getApplyList(userDetails.getId(), page-1, size);
 		return ApiResponse.of(true, HttpStatus.OK, "멘토링 신청 목록을 조회했습니다", response);
 	}
-
 }

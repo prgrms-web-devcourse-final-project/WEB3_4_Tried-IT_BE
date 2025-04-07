@@ -19,6 +19,8 @@ import com.dementor.domain.member.exception.MemberErrorCode;
 import com.dementor.domain.member.exception.MemberException;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
+import com.dementor.domain.mentoringclass.exception.MentoringClassException;
+import com.dementor.domain.mentoringclass.exception.MentoringClassExceptionCode;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ public class ApplyService {
 	public ApplyIdResponse createApply(ApplyCreateRequest req, Long memberId) {
 
 		MentoringClass mentoringClass = mentoringClassRepository.findById(req.getClassId())
-			.orElseThrow(() -> new IllegalArgumentException("멘토링 클래스를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND.getMessage()));
 
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));

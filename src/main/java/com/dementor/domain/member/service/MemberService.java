@@ -45,7 +45,7 @@ public class MemberService {
 				.password(passwordEncoder.encode(signupRequest.getPassword()))
 				.nickname(signupRequest.getNickname())
 				.name(signupRequest.getName())
-				.userRole(UserRole.MENTOR)
+				.userRole(UserRole.MENTEE)
 				.build();
 
 			memberRepository.save(member);
