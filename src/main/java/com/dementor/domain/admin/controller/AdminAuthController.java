@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dementor.domain.admin.dto.request.AdminLoginRequest;
-import com.dementor.domain.admin.dto.response.AdminLoginResponse;
-import com.dementor.domain.admin.dto.response.AdminLogoutResponse;
+import com.dementor.global.ApiResponse;
 import com.dementor.global.security.CustomUserDetails;
 import com.dementor.global.security.cookie.CookieUtil;
 import com.dementor.global.security.jwt.dto.TokenDto;
@@ -39,7 +38,7 @@ public class AdminAuthController {
 
 	@Operation(summary = "관리자 로그인", description = "관리자 계정으로 로그인합니다.")
 	@PostMapping("/login")
-	public ResponseEntity<AdminLoginResponse> login(@RequestBody AdminLoginRequest loginRequest) {
+	public ResponseEntity<ApiResponse<Void>> login(@RequestBody AdminLoginRequest loginRequest) {
 		try {
 			// 인증 시도
 			Authentication authentication = authenticationManager.authenticate(
@@ -68,23 +67,16 @@ public class AdminAuthController {
 
 			return ResponseEntity.ok()
 				.headers(headers)
-				.body(AdminLoginResponse.builder()
-					.message("로그인 성공")
-					.accessToken(tokens.getAccessToken())
-					.refreshToken(tokens.getRefreshToken())
-					.build());
+				.body(ApiResponse.of(true,HttpStatus.OK, "로그인 성공"));
 
 		} catch (AuthenticationException e) {
 			return ResponseEntity.badRequest()
-				.body(AdminLoginResponse.builder()
-					.message("로그인 실패: " + e.getMessage())
-					.accessToken(null)
-					.build());
+				.body(ApiResponse.of(false,HttpStatus.BAD_REQUEST, "로그인 실패"));
 		}
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<AdminLogoutResponse> logout(Authentication authentication) {
+	public ResponseEntity<ApiResponse<Void>> logout(Authentication authentication) {
 
 		if (authentication != null) {
 			String username = authentication.getName();
@@ -99,7 +91,7 @@ public class AdminAuthController {
 
 		return ResponseEntity.ok()
 			.headers(headers)
-			.body(new AdminLogoutResponse(true,"로그아웃 성공"));
+			.body(ApiResponse.of(true,HttpStatus.OK, "로그아웃 성공"));
 	}
 
 	// 리프레시 토큰 엔드포인트 추가

@@ -1,29 +1,19 @@
 package com.dementor.global.exception;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.security.access.AccessDeniedException;
+
 import com.dementor.domain.apply.exception.ApplyErrorCode;
 import com.dementor.domain.apply.exception.ApplyException;
-import com.dementor.domain.member.exception.MemberErrorCode;
-import com.dementor.domain.member.exception.MemberException;
 import com.dementor.global.ApiResponse;
 
 import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-	@ExceptionHandler(MemberException.class)
-	public ApiResponse<?> handleMemberException(MemberException e) {
-		MemberErrorCode errorCode = e.getErrorCode();
-		return ApiResponse.of(false,
-			errorCode.getStatus(),
-			errorCode.getMessage());
-	}
 
 	@ExceptionHandler(ApplyException.class)
 	public ApiResponse<?> handleApplyException(ApplyException e) {

@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dementor.domain.member.dto.request.LoginRequest;
-import com.dementor.domain.member.dto.response.MemberLoginResponse;
-import com.dementor.domain.member.dto.response.MemberLogoutResponse;
+import com.dementor.global.ApiResponse;
 import com.dementor.global.security.CustomUserDetails;
 import com.dementor.global.security.cookie.CookieUtil;
 import com.dementor.global.security.jwt.JwtTokenProvider;
@@ -40,7 +39,7 @@ public class MemberAuthController {
 
 	@Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
 	@PostMapping("/login")
-	public ResponseEntity<MemberLoginResponse> login(@RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<ApiResponse<Void>> login(@RequestBody LoginRequest loginRequest) {
 		try {
 			// 인증 시도
 			Authentication authentication = authenticationManager.authenticate(
@@ -69,24 +68,16 @@ public class MemberAuthController {
 
 			return ResponseEntity.ok()
 				.headers(headers)
-				.body(MemberLoginResponse.builder()
-					.message("로그인 성공")
-					.accessToken(tokens.getAccessToken())
-					.refreshToken(tokens.getRefreshToken())
-					.build());
+				.body(ApiResponse.of(true, HttpStatus.OK, "로그인 성공"));
 
 		} catch (AuthenticationException e) {
 			return ResponseEntity.badRequest()
-				.body(MemberLoginResponse.builder()
-					.message("로그인 실패: " + e.getMessage())
-					.accessToken(null)
-					.refreshToken(null)
-					.build());
+				.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "로그인 실패"));
 		}
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<MemberLogoutResponse> logout() {
+	public ResponseEntity<ApiResponse<Void>> logout() {
 
 		SecurityContextHolder.clearContext();
 
@@ -97,10 +88,11 @@ public class MemberAuthController {
 
 		return ResponseEntity.ok()
 			.headers(headers)
-			.body(new MemberLogoutResponse(true, "로그아웃 성공"));
+			.body(ApiResponse.of(true, HttpStatus.OK,"로그아웃 성공"));
 	}
 
 	// 리프레시 토큰 엔드포인트 추가
+	// TODO: 삭제 예정
 	@PostMapping("/refresh")
 	public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
 		try {
