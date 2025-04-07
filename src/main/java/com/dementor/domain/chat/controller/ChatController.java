@@ -46,7 +46,7 @@ public class ChatController {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
 
-        ChatRoomResponseDto room = chatRoomService.createAdminChatRooms(admin, member); // ✅ 반환값 받도록 변경
+        ChatRoomResponseDto room = chatRoomService.createAdminChatRooms(admin, member); //  반환값 받도록 변경
 
 
         return ResponseEntity.ok(room);
@@ -89,7 +89,7 @@ public class ChatController {
 //        }
 //    }
 
-
+//---------------------메시지조회----------------------
     // 채팅방 메시지 조회 API (커서 기반, 최신순 → 오래된순)
     @GetMapping("/room/{chatRoomId}/messages")
     public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(

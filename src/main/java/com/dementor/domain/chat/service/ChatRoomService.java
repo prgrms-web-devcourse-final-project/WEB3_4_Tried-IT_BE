@@ -92,7 +92,7 @@ public class ChatRoomService {
         return rooms.stream().map(room -> toDto(room, adminId)).toList();
     }
 
-
+//-----------------------------닉네임관련-----------------------------------
     // ChatRoomResponseDto 변환 & 실시간 닉네임 조회
     private ChatRoomResponseDto toDto(ChatRoom room, Long viewerId) {
         List<ChatMessage> messages = chatMessageRepository

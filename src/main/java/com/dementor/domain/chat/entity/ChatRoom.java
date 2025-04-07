@@ -44,9 +44,6 @@ public class ChatRoom {
     }
 
 
-
-
-
     // 관리자 채팅용
     @Column(name = "admin_id")
     private Long adminId;

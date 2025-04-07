@@ -27,6 +27,10 @@ public class WebSocketController {
     private final JwtTokenProvider jwtTokenProvider;      // JWT로 memberId 추출용
     private final MemberRepository memberRepository;      // 닉네임 조회용
 
+
+
+
+    //---------------전송 & JWT에서 senderId, senderType 추출
     @MessageMapping("/chat/message")
 
     public void sendMessage(ChatMessageSendDto dto, @Header("Authorization") String token) {
