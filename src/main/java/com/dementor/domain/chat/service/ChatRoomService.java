@@ -70,9 +70,9 @@ public class ChatRoomService {
         return toDto(room, admin.getId());  //dto 매개변수 viewerid
 
     }
-//----------------------------------------------------------------
+//--------------------------채팅방 목록 조회--------------------------------------
 
-    // 사용자(memberId) 기준 참여 중인 모든 채팅방 조회
+    // 사용자(memberId) 기준 참여 중인 모든 채팅방 목록 조회
     @Transactional(readOnly = true)
     public List<ChatRoomResponseDto> getAllMyChatRooms(Long memberId) {
         List<ChatRoom> mentoringRooms = chatRoomRepository.findMentoringChatRoomsByMemberId(memberId);
@@ -91,6 +91,38 @@ public class ChatRoomService {
         List<ChatRoom> rooms = chatRoomRepository.findAdminChatRoomsByAdminId(adminId);
         return rooms.stream().map(room -> toDto(room, adminId)).toList();
     }
+
+//---------------------채팅방 상세 조회--------------------------------------
+@Transactional(readOnly = true)
+public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Long viewerId, String viewerType) {
+    ChatRoom room = chatRoomRepository.findById(chatRoomId)
+            .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));  //roomId 존재안함
+
+    if (room.getRoomType() == RoomType.MENTORING_CHAT) {
+        // viewerType이 member가 아닐 경우 차단
+        if (!"member".equals(viewerType)) {
+            throw new SecurityException("멘토링 채팅방은 member만 접근할 수 있습니다.");
+        }
+       //  viewerId가 mentorId 또는 menteeId와 일치여부
+        if (!viewerId.equals(room.getMentorId()) && !viewerId.equals(room.getMenteeId())) {
+            throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+        }
+
+    } else if (room.getRoomType() == RoomType.ADMIN_CHAT) {
+        if ("member".equals(viewerType) && !viewerId.equals(room.getMemberId())) {
+            throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+        }
+        if ("admin".equals(viewerType) && !viewerId.equals(room.getAdminId())) {
+            throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+        }
+    }
+
+    return toDto(room, viewerId);
+}
+
+
+
+
 
 //-----------------------------닉네임관련-----------------------------------
     // ChatRoomResponseDto 변환 & 실시간 닉네임 조회

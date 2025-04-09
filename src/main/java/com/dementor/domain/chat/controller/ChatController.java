@@ -53,8 +53,7 @@ public class ChatController {
     }
 
 
-
-    //멤버가 자신의 채팅방 조회
+    //멤버가 자신의 채팅방목록 조회
     @GetMapping("/member/rooms")
     public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsMember(
             @RequestParam Long memberId
@@ -62,7 +61,7 @@ public class ChatController {
         return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
     }
 
-    //관리자가 자신의 채팅방 조회
+    //관리자가 자신의 채팅방목록 조회
     @GetMapping("/admin/rooms")
     public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsAdmin(
             @RequestParam Long adminId
@@ -71,37 +70,29 @@ public class ChatController {
     }
 
 
-
-    //    //사용자 채팅방 목록 조회 (멤버 또는 관리자)
-//    // memberId 또는 adminId 중 하나를 파라미터로 전달받아 채팅방 목록 조회
-//
-//    @GetMapping("/rooms")
-//    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
-//            @RequestParam(required = false) Long memberId,
-//            @RequestParam(required = false) Long adminId
-//    ) {
-//        if (memberId != null) {
-//            return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
-//        } else if (adminId != null) {
-//            return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(adminId));
-//        } else {
-//            throw new IllegalArgumentException("memberId 또는 adminId 중 하나는 필수입니다.");
-//        }
-//    }
-
-//---------------------메시지조회----------------------
-    // 채팅방 메시지 조회 API (커서 기반, 최신순 → 오래된순)
-    @GetMapping("/room/{chatRoomId}/messages")
-    public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(
+    // ---------------------채팅방 상세 조회--------------------------------------
+    @GetMapping("/room/{chatRoomId}")
+    public ResponseEntity<ChatRoomResponseDto> getChatRoomDetail(
             @PathVariable Long chatRoomId,
-            @RequestParam(required = false) Long beforeMessageId,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam Long viewerId,
+            @RequestParam String viewerType
     ) {
-        return ResponseEntity.ok(chatMessageService.getMessages(chatRoomId, beforeMessageId, size));
+        ChatRoomResponseDto response = chatRoomService.getChatRoomDetail(chatRoomId, viewerId, viewerType);
+        return ResponseEntity.ok(response);
     }
 
 }
 
+////---------------------메시지조회----------------------
+//    // 채팅방 메시지 조회 API (커서 기반, 최신순 → 오래된순)
+//    @GetMapping("/room/{chatRoomId}/messages")
+//    public ResponseEntity<ChatMessageSliceDto> getMessagesWithCursor(
+//            @PathVariable Long chatRoomId,
+//            @RequestParam(required = false) Long beforeMessageId,
+//            @RequestParam(defaultValue = "20") int size
+//    ) {
+//        return ResponseEntity.ok(chatMessageService.getMessages(chatRoomId, beforeMessageId, size));
+//    }
 
 
 
