@@ -2,16 +2,12 @@ package com.dementor.domain.chat.controller;
 
 import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.admin.repository.AdminRepository;
-import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.dto.ChatRoomResponseDto;
 import com.dementor.domain.chat.service.ChatMessageService;
 
 import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.global.security.jwt.JwtTokenProvider;
-import com.dementor.global.security.cookie.CookieUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chat")
-public class ChatController {
+public class ChatRoomController {
 
 
     private final ChatRoomService chatRoomService;
