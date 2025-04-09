@@ -9,13 +9,12 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 //    List<ChatMessage> findByChatRoomIdOrderByCreatedAtAsc(Long chatRoomId);
 //    //전체 메시지를 오래된 순으로 가져옴-> 커서기반이면 굳이 필요없는듯
 
-    List<ChatMessage> findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(Long chatRoomId, Long messageId);
-    // 커서 기반 페이징 -이전메시지 20개 가져오기
-
+    // 채팅방 처음 입장 시 → 최신 20개 메시지 조회 (chatMessageId 기준 내림차순)
     List<ChatMessage> findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(Long chatRoomId);
-    //채팅방 처음 들어올때 20개조회
 
+    // 과거 메시지 조회 (이전 메시지 ID 기준, 내림차순)
+    List<ChatMessage> findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(Long chatRoomId, Long chatMessageId);
+
+    // 채팅방 목록 조회용: 해당 방의 마지막 메시지 1개 (보통 가장 최근 메시지 시간 확인용)
     List<ChatMessage> findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(Long chatRoomId);
-    // 채팅방 목록용 마지막 메시지 미리보기 - 가장 최근 메시지 1개
-
 }

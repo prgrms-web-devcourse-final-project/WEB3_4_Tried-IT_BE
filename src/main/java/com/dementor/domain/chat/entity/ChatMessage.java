@@ -24,11 +24,11 @@ public class ChatMessage {
 //    @Enumerated(EnumType.STRING) // ENTER, MESSAGE, EXIT
 //    @Column(nullable = false)
 //    private MessageType type;
-
-    // 메시지 타입: ENTER, MESSAGE, EXIT
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MessageType messageType;
+//
+//    // 메시지 타입: ENTER, MESSAGE, EXIT
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private MessageType messageType;
 
     // 발신자 ID (member 또는 admin)
     @Column(nullable = false)

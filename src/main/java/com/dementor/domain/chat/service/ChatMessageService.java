@@ -2,112 +2,103 @@ package com.dementor.domain.chat.service;
 
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
-import com.dementor.domain.chat.dto.ChatMessageSliceDto;
 import com.dementor.domain.chat.entity.ChatMessage;
 import com.dementor.domain.chat.entity.ChatRoom;
 import com.dementor.domain.chat.entity.MessageType;
-import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
-import com.dementor.domain.member.entity.Member;
-import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.domain.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import static io.lettuce.core.GeoArgs.Unit.m;
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
 
-    private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final MemberRepository memberRepository;
-    private final AdminRepository adminRepository;
-    private final ChatRoomService chatRoomService;
+    private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final TimeZone KST = TimeZone.getTimeZone("Asia/Seoul");
 
-
-    // 메시지 저장 및 닉네임 분기 처리
+    // 1. 메시지 저장 - REST 방식 사용 가능
     @Transactional
-    public ChatMessageResponseDto handleMessage(ChatMessageSendDto dto, Long senderId, SenderType senderType) {
+    public ChatMessageResponseDto sendMessage(ChatMessageSendDto dto) {
         ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
-                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + dto.getChatRoomId()));
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 
-        // 닉네임 분기 처리
-        String nickname = senderType == SenderType.SYSTEM
-                ? "시스템"
-                : chatRoomService.getTargetNickname(chatRoom, senderId);
+        ChatMessage chatMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .senderId(dto.getSenderId())
+                .senderType(dto.getSenderType())
+                .content(dto.getContent())
+//                .messageType(MessageType.TALK)
+                .sentAt(LocalDateTime.now())
+                .build();
 
-        log.info("💾 저장할 메시지: chatRoomId={}, senderId={}, nickname={}, content={}",
-                chatRoom.getChatRoomId(), senderId, nickname, dto.getMessage());
+        chatMessageRepository.save(chatMessage);
+        chatRoom.updateLastMessageTime(chatMessage.getSentAt());
 
-        // 메시지 생성 및 저장
-        ChatMessage message = new ChatMessage();
-        message.setChatRoom(chatRoom);
-        message.setMessageType(dto.getType());
-        message.setSenderId(senderId);
-        message.setSenderType(senderType);
-        message.setContent(dto.getType() == MessageType.MESSAGE ? dto.getMessage() : null);
-        message.setSentAt(LocalDateTime.now()); // sentAt 명시적 설정
-
-
-        chatMessageRepository.save(message);
-        chatRoom.updateLastMessageTime(message.getSentAt()); // 마지막 메시지 시간 갱신
-
-
-        //  응답 DTO 생성
-        return new ChatMessageResponseDto(
-                message.getMessageType(),
-                chatRoom.getChatRoomId(),
-                senderId,
-                senderType,
-                nickname,
-                message.getContent(),
-                message.getSentAt().atZone(KST)
+        ChatMessageResponseDto responseDto = new ChatMessageResponseDto(
+//                chatMessage.getMessageType(),
+                chatMessage.getChatRoom().getChatRoomId(),
+                chatMessage.getSenderId(),
+                chatMessage.getSenderType(),
+//                null, // nickname은 추후 처리
+                chatMessage.getContent(),
+                chatMessage.getSentAt().atZone(KST.toZoneId())
         );
+
+        // 2. 실시간 브로드캐스트
+        messagingTemplate.convertAndSend("/sub/chat/room/" + chatRoom.getChatRoomId(), responseDto);
+
+        return responseDto;
+    }
+
+    // 3. 메시지 목록 조회
+    @Transactional(readOnly = true)
+    public List<ChatMessageResponseDto> getMessages(Long chatRoomId, Long beforeMessageId) {
+        List<ChatMessage> messages;
+
+        if (beforeMessageId != null && beforeMessageId > 0) {
+            // 이전 메시지부터 20개 가져오기 (과거로 스크롤)
+            messages = chatMessageRepository
+                    .findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(chatRoomId, beforeMessageId);
+        } else {
+            // 최초 입장 시 최신 메시지부터
+            messages = chatMessageRepository
+                    .findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId);
+        }
+
+        // 프론트에선 오래된 → 최신 순으로 보여줘야 하므로 역순 정렬
+        List<ChatMessage> sorted = messages.stream()
+                .sorted((m1, m2) -> Long.compare(m1.getChatMessageId(), m2.getChatMessageId()))
+                .toList();
+
+        return sorted.stream().map(chatMessage -> new ChatMessageResponseDto(
+                chatMessage.getChatRoom().getChatRoomId(),
+                chatMessage.getSenderId(),
+                chatMessage.getSenderType(),
+                chatMessage.getContent(),
+                chatMessage.getSentAt().atZone(KST.toZoneId())
+        )).collect(Collectors.toList());
     }
 
 
-     //채팅 메시지 조회 (커서 기반)
 
-    @Transactional(readOnly = true)
-    public ChatMessageSliceDto getMessages(Long chatRoomId, Long beforeMessageId, int size) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. chatRoomId=" + chatRoomId));
-
-        List<ChatMessage> messages = (beforeMessageId != null)
-                ? chatMessageRepository.findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(chatRoomId, beforeMessageId)
-                : chatMessageRepository.findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId);
-
-            // 닉네임 분기, chatRoomService 사용
-            List<ChatMessageResponseDto> dtoList = messages.stream().map((ChatMessage m) -> {
-                String nickname = m.getSenderType() == SenderType.SYSTEM
-                        ? "시스템"
-                        : chatRoomService.getTargetNickname(chatRoom, m.getSenderId());
-
-            return new ChatMessageResponseDto(
-                    m.getMessageType(),
-                    chatRoomId,
-                    m.getSenderId(),
-                    m.getSenderType(),
-                    nickname,
-                    m.getContent(),
-                    m.getSentAt().atZone(KST)
-            );
-        }).collect(Collectors.toList());
-
-        Long nextCursor = messages.isEmpty() ? null : messages.get(messages.size() - 1).getChatMessageId();
-
-        return new ChatMessageSliceDto(dtoList, dtoList.size() == size, nextCursor);
+    // 4. 웹소켓 메시지 수신 처리 (컨트롤러 대신 서비스에서 분리 가능)
+    @MessageMapping("/chat/rooms/{chatRoomId}/messages/create")
+    public void receiveMessageWebsocket(@DestinationVariable Long chatRoomId, ChatMessageSendDto dto) {
+        dto.setChatRoomId(chatRoomId);
+        sendMessage(dto); // 저장 및 브로드캐스트 호출
     }
 }
