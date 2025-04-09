@@ -59,6 +59,6 @@ public class ChatRoom {
     @Column(name = "mentee_id")
     private Long menteeId;
 
-    @Column(name = "target_nickname")
-    private String targetNickname;
+//    @Column(name = "target_nickname")
+//    private String targetNickname;
 }

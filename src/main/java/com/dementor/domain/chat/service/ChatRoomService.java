@@ -62,7 +62,7 @@ public class ChatRoomService {
                 .roomType(RoomType.ADMIN_CHAT)
                 .adminId(admin.getId())
                 .memberId(member.getId())
-                .targetNickname("관리자") // 하드코딩된 관리자 닉네임
+//                .targetNickname("관리자") // 하드코딩된 관리자 닉네임
                 .build();
 
         chatRoomRepository.save(room);
@@ -165,7 +165,7 @@ public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Long viewerId, Str
                         .map(Member::getNickname)
                         .orElse("알 수 없음");
             } else {
-                return room.getTargetNickname(); // 사용자 입장에서 → '관리자'
+                return "관리자"; // 사용자 입장에서 → '관리자'
             }
         }
 
