@@ -5,6 +5,8 @@ import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,5 +37,15 @@ public class ChatMessageController {
     ) {
         List<ChatMessageResponseDto> messages = chatMessageService.getMessages(chatRoomId, beforeMessageId);
         return ResponseEntity.ok(messages);
+    }
+
+    // 3. 메시지 전송 (WebSocket)
+    @MessageMapping("/chat/rooms/{chatRoomId}/messages/create")
+    public void receiveMessageViaWebsocket(
+            @DestinationVariable Long chatRoomId,
+            ChatMessageSendDto dto
+    ) {
+        dto.setChatRoomId(chatRoomId);
+        chatMessageService.sendMessage(dto);
     }
 }

@@ -94,11 +94,4 @@ public class ChatMessageService {
     }
 
 
-
-    // 4. 웹소켓 메시지 수신 처리 (컨트롤러 대신 서비스에서 분리 가능)
-    @MessageMapping("/chat/rooms/{chatRoomId}/messages/create")
-    public void receiveMessageWebsocket(@DestinationVariable Long chatRoomId, ChatMessageSendDto dto) {
-        dto.setChatRoomId(chatRoomId);
-        sendMessage(dto); // 저장 및 브로드캐스트 호출
-    }
 }
