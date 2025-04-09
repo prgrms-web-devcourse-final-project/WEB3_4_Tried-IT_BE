@@ -1,4 +1,4 @@
-package com.dementor.global.security.websocket;
+package com.dementor.global.websocket;
 
 
 import org.springframework.context.annotation.Configuration;

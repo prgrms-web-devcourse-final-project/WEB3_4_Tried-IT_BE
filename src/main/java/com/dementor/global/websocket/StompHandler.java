@@ -1,7 +1,7 @@
 //WebSocket을 통해 들어오는 STOMP 메시지의 인증을 처리하는 필터 역할
 //클라이언트가 /pub/chat/message 같은 경로로 메시지를 보낼 때, JWT 토큰이 유효한지 검사
 
-package com.dementor.global.security.websocket;
+package com.dementor.global.websocket;
 
 import com.dementor.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.JwtException;

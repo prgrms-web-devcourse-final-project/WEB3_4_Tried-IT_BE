@@ -1,4 +1,4 @@
-package com.dementor.global.security.websocket;
+package com.dementor.global.websocket;
 
 
 import jakarta.servlet.http.HttpServletRequest;
