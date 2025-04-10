@@ -1,67 +1,67 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8" />
-    <title>WebSocket Chat Test</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; }
-        #chatMessages li { margin-bottom: 0.5rem; }
-    </style>
-</head>
-<body>
-<h2>💬 WebSocket Chat Test</h2>
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <meta charset="UTF-8" />-->
+<!--    <title>WebSocket Chat Test</title>-->
+<!--    <style>-->
+<!--        body { font-family: Arial, sans-serif; margin: 2rem; }-->
+<!--        #chatMessages li { margin-bottom: 0.5rem; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h2>💬 WebSocket Chat Test</h2>-->
 
-<input type="text" id="messageInput" placeholder="Type your message..." />
-<button onclick="sendMessage()">Send</button>
+<!--<input type="text" id="messageInput" placeholder="Type your message..." />-->
+<!--<button onclick="sendMessage()">Send</button>-->
 
-<ul id="chatMessages"></ul>
+<!--<ul id="chatMessages"></ul>-->
 
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>-->
 
-<script>
-    const token = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtZW50ZWVAdGVzdC5jb20iLCJhdXRoIjoiUk9MRV9NRU5URUUiLCJuaWNrbmFtZSI6Iu2FjOyKpO2KuOupmO2LsCIsIm1lbWJlcklkIjoxNCwiaWF0IjoxNzQzOTk4MjY0LCJleHAiOjE3NDQwMzQyNjR9.azfu8o_zG_B3f53bnDiTRnh_FGmIFWov-us-YLR58sQ4mU4X_plcHyS8qaQ_FzGruorhkFKwnRx4SPvwa-qDcQ";
-    const chatRoomId = 35;
+<!--<script>-->
+<!--    const token = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtZW50ZWVAdGVzdC5jb20iLCJhdXRoIjoiUk9MRV9NRU5URUUiLCJuaWNrbmFtZSI6Iu2FjOyKpO2KuOupmO2LsCIsIm1lbWJlcklkIjoxNCwiaWF0IjoxNzQzOTk4MjY0LCJleHAiOjE3NDQwMzQyNjR9.azfu8o_zG_B3f53bnDiTRnh_FGmIFWov-us-YLR58sQ4mU4X_plcHyS8qaQ_FzGruorhkFKwnRx4SPvwa-qDcQ";-->
+<!--    const chatRoomId = 35;-->
 
-    const socket = new SockJS("http://localhost:8080/ws");
-    const stompClient = Stomp.over(socket);
+<!--    const socket = new SockJS("http://localhost:8080/ws");-->
+<!--    const stompClient = Stomp.over(socket);-->
 
-    // WebSocket 연결 시도
-    stompClient.connect({ Authorization: token }, function (frame) {
-        console.log("✅ WebSocket 연결 성공:", frame);
+<!--    // WebSocket 연결 시도-->
+<!--    stompClient.connect({ Authorization: token }, function (frame) {-->
+<!--        console.log("✅ WebSocket 연결 성공:", frame);-->
 
-        // 채팅방 구독
-        stompClient.subscribe("/sub/chat/room/" + chatRoomId, function (message) {
-            const msg = JSON.parse(message.body);
-            console.log("📥 수신한 메시지:", msg);
+<!--        // 채팅방 구독-->
+<!--        stompClient.subscribe("/sub/chat/room/" + chatRoomId, function (message) {-->
+<!--            const msg = JSON.parse(message.body);-->
+<!--            console.log("📥 수신한 메시지:", msg);-->
 
-            const listItem = document.createElement("li");
-            listItem.textContent = `[${msg.nickname}] ${msg.content}`;
-            document.getElementById("chatMessages").appendChild(listItem);
-        });
-    }, function (error) {
-        console.error("❌ WebSocket 연결 실패:", error);
-    });
+<!--            const listItem = document.createElement("li");-->
+<!--            listItem.textContent = `[${msg.nickname}] ${msg.content}`;-->
+<!--            document.getElementById("chatMessages").appendChild(listItem);-->
+<!--        });-->
+<!--    }, function (error) {-->
+<!--        console.error("❌ WebSocket 연결 실패:", error);-->
+<!--    });-->
 
-    // 메시지 전송 함수
-    function sendMessage() {
-        const messageContent = document.getElementById("messageInput").value;
+<!--    // 메시지 전송 함수-->
+<!--    function sendMessage() {-->
+<!--        const messageContent = document.getElementById("messageInput").value;-->
 
-        if (!messageContent) {
-            alert("메시지를 입력하세요!");
-            return;
-        }
+<!--        if (!messageContent) {-->
+<!--            alert("메시지를 입력하세요!");-->
+<!--            return;-->
+<!--        }-->
 
-        console.log("📤 메시지 전송:", messageContent);
+<!--        console.log("📤 메시지 전송:", messageContent);-->
 
-        stompClient.send("/pub/chat/message", { Authorization: token }, JSON.stringify({
-            chatRoomId: chatRoomId,
-            message: messageContent,
-            type: "MESSAGE"
-        }));
+<!--        stompClient.send("/pub/chat/message", { Authorization: token }, JSON.stringify({-->
+<!--            chatRoomId: chatRoomId,-->
+<!--            message: messageContent,-->
+<!--            type: "MESSAGE"-->
+<!--        }));-->
 
-        document.getElementById("messageInput").value = "";
-    }
-</script>
-</body>
-</html>
+<!--        document.getElementById("messageInput").value = "";-->
+<!--    }-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->

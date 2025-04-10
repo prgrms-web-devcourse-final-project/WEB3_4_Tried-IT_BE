@@ -30,11 +30,12 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final ChatRoomService chatRoomService;
 
     private static final TimeZone KST = TimeZone.getTimeZone("Asia/Seoul");
 
     /**
-     * ① 메시지 목록 조회
+     *  1. 메시지 목록 조회
      * - 사용자가 채팅방에 입장할 때 과거 메시지 불러오기
      */
     @Transactional(readOnly = true)
@@ -64,12 +65,20 @@ public class ChatMessageService {
     }
 
     /**
-     * ② 메시지 저장 및 실시간 전송
+     * 2. 메시지 저장 및 실시간 전송
      * - 사용자가 메시지를 보낼 때 호출
      * - DB에 저장 후, RabbitMQ 통해 실시간 브로드캐스트
      */
     @Transactional
     public ChatMessageResponseDto sendMessage(ChatMessageSendDto dto) {
+
+        // 참여자 검증 로직 추가 (기존 ChatRoomService 로직 재사용)
+        chatRoomService.getChatRoomDetail(
+                dto.getChatRoomId(),
+                dto.getSenderId(),          // senderId == viewerId
+                dto.getSenderType().name().toLowerCase() // senderType == viewerType ( enum → "member"/"admin")
+        );
+
         // 채팅방 유효성 검사
         ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));

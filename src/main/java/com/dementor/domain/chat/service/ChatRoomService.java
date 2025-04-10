@@ -92,7 +92,7 @@ public class ChatRoomService {
         return rooms.stream().map(room -> toDto(room, adminId)).toList();
     }
 
-//---------------------채팅방 상세 조회--------------------------------------
+//---------------------채팅방 상세 조회(viewerId,viewerType 매칭) --------------------------------------
 @Transactional(readOnly = true)
 public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Long viewerId, String viewerType) {
     ChatRoom room = chatRoomRepository.findById(chatRoomId)
