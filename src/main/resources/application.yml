@@ -57,3 +57,20 @@ jwt:
     path: / # 쿠키가 유효한 경로 지정
     max-age-seconds: 86400
 
+file:
+  max-size: 5242880        # 5MB (5 * 1024 * 1024)
+  max-per-user: 20       # 사용자당 최대 파일 수
+
+firebase:
+  config:
+    path: firebase-adminsdk.json
+  storage:
+    bucket: dementor-cd1c2.firebasestorage.app
+    url-expiry: 30   # 서명된 URL 만료 시간(일)
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

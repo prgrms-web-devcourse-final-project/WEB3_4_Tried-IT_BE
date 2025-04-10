@@ -11,8 +11,6 @@ public record MentorInfoResponse (
         String email,
         String currentCompany,
         String introduction,
-        String bestFor,
-        Mentor.ApprovalStatus approvalStatus,
         Integer totalClasses,
         Integer pendingRequests,
         Integer completedSessions
@@ -28,8 +26,6 @@ public record MentorInfoResponse (
                 mentor.getEmail(),
                 mentor.getCurrentCompany(),
                 mentor.getIntroduction(),
-                mentor.getBestFor(),
-                mentor.getApprovalStatus(),
                 totalClasses,
                 pendingRequests,
                 completedSessions

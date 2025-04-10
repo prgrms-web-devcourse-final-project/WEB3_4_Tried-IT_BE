@@ -1,20 +1,16 @@
 package com.dementor.mentor.controller;
 
-import com.dementor.domain.job.entity.Job;
-import com.dementor.domain.job.repository.JobRepository;
-import com.dementor.domain.member.entity.Member;
-import com.dementor.domain.member.entity.UserRole;
-import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.domain.mentor.dto.request.MentorApplicationRequest;
-import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
-import com.dementor.domain.mentor.entity.Mentor;
-import com.dementor.domain.mentor.entity.MentorModification;
-import com.dementor.domain.mentor.repository.MentorApplicationRepository;
-import com.dementor.domain.mentor.repository.MentorModificationRepository;
-import com.dementor.domain.mentor.repository.MentorRepository;
-import com.dementor.global.security.CustomUserDetails;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,13 +21,22 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.dementor.domain.job.entity.Job;
+import com.dementor.domain.job.repository.JobRepository;
+import com.dementor.domain.member.entity.Member;
+import com.dementor.domain.member.entity.UserRole;
+import com.dementor.domain.member.repository.MemberRepository;
+import com.dementor.domain.mentor.dto.request.MentorApplyProposalRequest;
+import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
+import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
+import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
+import com.dementor.domain.mentor.entity.ModificationStatus;
+import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
+import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
+import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.global.security.CustomUserDetails;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -64,16 +69,16 @@ public class MentorControllerTest {
     private Long testMentorId;
     private Long testJobId;
     @Autowired
-    private MentorModificationRepository mentorModificationRepository;
+    private MentorEditProposalRepository mentorEditProposalRepository;
 
     @Autowired
-    private MentorApplicationRepository mentorApplicationRepository;
+    private MentorApplyProposalRepository mentorApplyProposalRepository;
 
     @BeforeEach
     void setUp() {
         // 기존 데이터 정리
-        mentorModificationRepository.deleteAll();
-        mentorApplicationRepository.deleteAll();
+        mentorEditProposalRepository.deleteAll();
+        mentorApplyProposalRepository.deleteAll();
         mentorRepository.deleteAll();
         memberRepository.deleteAll();
         jobRepository.deleteAll();
@@ -119,10 +124,7 @@ public class MentorControllerTest {
                 .phone("01012345678")
                 .email("testmentor@test.com")
                 .introduction("자기소개")
-                .bestFor("특기")
-                .approvalStatus(Mentor.ApprovalStatus.APPROVED)
-                .modificationStatus(Mentor.ModificationStatus.NONE)
-                .mentorings(new ArrayList<>())
+                .modificationStatus(ModificationStatus.NONE)
                 .build();
         mentorRepository.save(mentorInfo);
     }
@@ -133,8 +135,8 @@ public class MentorControllerTest {
     @WithMockUser(roles = "MENTEE")
     void applyMentorSuccess() throws Exception {
         // Given
-        MentorApplicationRequest.MentorApplicationRequestDto requestDto =
-                new MentorApplicationRequest.MentorApplicationRequestDto(
+        MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto =
+                new MentorApplyProposalRequest.MentorApplyProposalRequestDto(
                         testMemberId,
                         testMember.getName(),
                         testJobId,
@@ -192,7 +194,6 @@ public class MentorControllerTest {
                                 .with(user(mentorPrincipal))
                 )
                 .andDo(print());
-
         // Then
         resultActions
                 .andExpect(status().isOk())
@@ -255,12 +256,12 @@ public class MentorControllerTest {
     void getModificationRequestsSuccess() throws Exception {
         // Given
         // 수정 요청을 생성 (이미 setUp 메서드에서 testMentor가 APPROVED 상태)
-        MentorModification modification = MentorModification.builder()
+        MentorEditProposal modification = MentorEditProposal.builder()
                 .member(testMentor)
                 .changes("{\"career\":{\"before\":5,\"after\":8},\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
-                .status(MentorModification.ModificationStatus.PENDING)
+                .status(MentorEditProposalStatus.PENDING)
                 .build();
-        mentorModificationRepository.save(modification);
+        mentorEditProposalRepository.save(modification);
 
         // When
         ResultActions resultActions = mvc
@@ -290,20 +291,20 @@ public class MentorControllerTest {
     void getModificationRequestsWithStatusFilterSuccess() throws Exception {
         // Given
         // PENDING 상태의 수정 요청 생성
-        MentorModification pendingModification = MentorModification.builder()
+        MentorEditProposal pendingModification = MentorEditProposal.builder()
                 .member(testMentor)
                 .changes("{\"career\":{\"before\":5,\"after\":8}}")
-                .status(MentorModification.ModificationStatus.PENDING)
+                .status(MentorEditProposalStatus.PENDING)
                 .build();
-        mentorModificationRepository.save(pendingModification);
+        mentorEditProposalRepository.save(pendingModification);
 
         // APPROVED 상태의 수정 요청 생성
-        MentorModification approvedModification = MentorModification.builder()
+        MentorEditProposal approvedModification = MentorEditProposal.builder()
                 .member(testMentor)
                 .changes("{\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
-                .status(MentorModification.ModificationStatus.APPROVED)
+                .status(MentorEditProposalStatus.APPROVED)
                 .build();
-        mentorModificationRepository.save(approvedModification);
+        mentorEditProposalRepository.save(approvedModification);
 
         // When - APPROVED 상태만 필터링하여 조회
         ResultActions resultActions = mvc

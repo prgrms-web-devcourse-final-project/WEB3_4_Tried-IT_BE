@@ -58,6 +58,8 @@ public class MemberService {
 		memberRepository.findByEmail(email).ifPresent(member -> {
 			throw new MemberException(MemberErrorCode.DUPLICATE_EMAIL);
 		});
+
+
 		return true;
 	}
 

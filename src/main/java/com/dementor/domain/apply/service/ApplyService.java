@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dementor.domain.apply.dto.request.ApplyCreateRequest;
 import com.dementor.domain.apply.dto.response.ApplyIdResponse;
 import com.dementor.domain.apply.dto.response.ApplyPageResponse;
+import com.dementor.domain.apply.dto.response.ApplyScheduleResponse;
 import com.dementor.domain.apply.entity.Apply;
 import com.dementor.domain.apply.entity.ApplyStatus;
 import com.dementor.domain.apply.exception.ApplyErrorCode;
@@ -26,6 +27,9 @@ import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,7 +45,7 @@ public class ApplyService {
 	public ApplyIdResponse createApply(ApplyCreateRequest req, Long memberId) {
 
 		MentoringClass mentoringClass = mentoringClassRepository.findById(req.getClassId())
-			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND.getMessage()));
+			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND));
 
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -84,7 +88,6 @@ public class ApplyService {
 
 	}
 
-
 	//내가 신청한 멘토링 목록 조회 (페이징)
 	public ApplyPageResponse getApplyList(Long memberId, int page, int size) {
 		memberRepository.findById(memberId)
@@ -95,5 +98,17 @@ public class ApplyService {
 		Page<Apply> applyPage = applyRepository.findByMemberId(memberId, pageable);
 
 		return ApplyPageResponse.from(applyPage, page, size);
+	}
+
+	//특정 멘토링 신청 날짜 목록 조회
+	public ApplyScheduleResponse getApplySchedulesByClassId(Long classId, String startDate, String endDate) {
+
+		mentoringClassRepository.findById(classId)
+			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND));
+
+		List<Apply> applies = applyRepository.findAllByClassIdAndScheduleBetween(
+			classId, startDate, endDate);
+
+		return ApplyScheduleResponse.fromList(applies);
 	}
 }

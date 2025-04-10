@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-public class FileResponseDto {
+public class FileResponse {
     // 파일 업로드 응답 DTO
     @Getter
     @NoArgsConstructor
@@ -28,6 +28,8 @@ public class FileResponseDto {
         private Long attachmentId;
         private String originalFilename;
         private Long fileSize;
+        private String fileUrl;
+        private String uniqueIdentifier;
     }
 
     // 파일 삭제 응답 DTO
@@ -38,25 +40,5 @@ public class FileResponseDto {
     public static class FileDeleteResponseDto {
         private int status;
         private String message;
-    }
-
-    // 에러 응답 DTO
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class ErrorResponseDto {
-        private int status;
-        private String message;
-        private List<FieldError> errors;
-
-        @Getter
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class FieldError {
-            private String field;
-            private String message;
-        }
     }
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.entity.ModificationStatus;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
@@ -70,8 +72,10 @@ public class MentorApplyControllerTest {
 	private MentoringClass testMentoringClass;
 	private Member testMentor;
 
+
 	@BeforeEach
 	void setUp() {
+
 		// 테스트용 멘토 생성
 		testMentor = Member.builder()
 			.email("mentor@test.com")
@@ -83,6 +87,7 @@ public class MentorApplyControllerTest {
 		testMentor = memberRepository.save(testMentor);
 		mentorPrincipal = CustomUserDetails.of(testMentor);
 
+
 		// 테스트용 멘티 생성
 		testMentee = Member.builder()
 			.email("mentee@test.com")
@@ -92,6 +97,7 @@ public class MentorApplyControllerTest {
 			.userRole(UserRole.MENTEE)
 			.build();
 		testMentee = memberRepository.save(testMentee);
+
 
 		// 직업 생성
 		Job job = Job.builder()
@@ -108,10 +114,8 @@ public class MentorApplyControllerTest {
 			.phone("010-1234-5678")
 			.email("mentor@example.com")
 			.currentCompany("테스트 회사")
-			.bestFor("테스트 특기")
 			.introduction("테스트 멘토 소개")
-			.approvalStatus(Mentor.ApprovalStatus.APPROVED)
-			.modificationStatus(Mentor.ModificationStatus.NONE)
+			.modificationStatus(ModificationStatus.NONE)
 			.build();
 		mentor = mentorRepository.save(mentor);
 
@@ -136,6 +140,15 @@ public class MentorApplyControllerTest {
 				.build();
 			testApplies.add(applyRepository.save(apply));
 		}
+	}
+
+	@AfterEach
+	void tearDown() {
+		mentorPrincipal = null;
+		testMentee = null;
+		testApplies = null;
+		testMentoringClass = null;
+		testMentor = null;
 	}
 
 	@Test
@@ -184,47 +197,6 @@ public class MentorApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.page").value(2));
 	}
 
-	@Test
-	@DisplayName("승인되지 않은 멘토가 신청된 목록 조회")
-	@WithMockUser(roles = "MENTOR")
-	void getApplyByMentor2() throws Exception {
-
-		Member unapprovedMentorMember = Member.builder()
-			.email("unapproved@test.com")
-			.password("password")
-			.nickname("unapprovedMentor")
-			.name("미승인멘토")
-			.userRole(UserRole.MENTOR)
-			.build();
-		unapprovedMentorMember = memberRepository.save(unapprovedMentorMember);
-
-		Job job = jobRepository.findAll().get(0);
-
-		Mentor unapprovedMentor = Mentor.builder()
-			.member(unapprovedMentorMember)
-			.name("미승인멘토")
-			.job(job)
-			.career(1)
-			.phone("010-9999-8888")
-			.introduction("미승인 멘토 소개")
-			.approvalStatus(Mentor.ApprovalStatus.PENDING)
-			.build();
-		mentorRepository.save(unapprovedMentor);
-
-		CustomUserDetails unapprovedMentorPrincipal = CustomUserDetails.of(unapprovedMentorMember);
-
-		// API 호출
-		mvc.perform(
-				get("/api/mentor/apply")
-					.param("page", "1")
-					.param("size", "10")
-					.with(user(unapprovedMentorPrincipal))
-			)
-			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.code").value(403))
-			.andExpect(jsonPath("$.message").value("승인되지 않은 멘토는 신청 목록을 조회할 수 없습니다"))
-			.andDo(print());
-	}
 
 	@Test
 	@DisplayName("멘토링 신청 승인 테스트")
@@ -299,48 +271,6 @@ public class MentorApplyControllerTest {
 			.andDo(print());
 	}
 
-	@Test
-	@DisplayName("승인되지 않은 멘토가 상태 변경 시도")
-	@WithMockUser(roles = "MENTOR")
-	void updateStatusByUnapprovedMentor() throws Exception {
-		// 승인되지 않은 멘토 생성
-		Member unapprovedMentorMember = Member.builder()
-			.email("unapproved@test.com")
-			.password("password")
-			.nickname("unapprovedMentor")
-			.name("미승인멘토")
-			.userRole(UserRole.MENTOR)
-			.build();
-		unapprovedMentorMember = memberRepository.save(unapprovedMentorMember);
 
-		Job job = jobRepository.findAll().get(0);
-
-		Mentor unapprovedMentor = Mentor.builder()
-			.member(unapprovedMentorMember)
-			.name("미승인멘토")
-			.job(job)
-			.career(1)
-			.phone("010-9999-8888")
-			.introduction("미승인 멘토 소개")
-			.approvalStatus(Mentor.ApprovalStatus.PENDING)
-			.build();
-		mentorRepository.save(unapprovedMentor);
-
-		CustomUserDetails unapprovedMentorPrincipal = CustomUserDetails.of(unapprovedMentorMember);
-
-		Long applyId = testApplies.get(0).getId();
-		String requestJson = "{\"status\": \"APPROVED\"}";
-
-		mvc.perform(
-				put("/api/mentor/apply/" + applyId + "/status")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(requestJson)
-					.with(user(unapprovedMentorPrincipal))
-			)
-			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.code").value(403))
-			.andExpect(jsonPath("$.message").value("승인되지 않은 멘토는 신청 상태를 변경할 수 없습니다"))
-			.andDo(print());
-	}
 
 }

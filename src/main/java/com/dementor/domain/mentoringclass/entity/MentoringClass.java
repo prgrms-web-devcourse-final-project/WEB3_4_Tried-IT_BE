@@ -30,7 +30,7 @@ public class MentoringClass extends BaseEntity {
     @Getter
     private int price;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id")
     @Getter
     private Mentor mentor;

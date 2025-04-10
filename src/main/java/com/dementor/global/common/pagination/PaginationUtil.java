@@ -17,5 +17,16 @@ public class PaginationUtil {
             );
     }
 
+    public static Pageable getApplymentPageable(Pageable pageable) {
+        if (pageable.getSort().isSorted()) // 정렬 조건이 있는 경우
+            return pageable;
+        else // 없으면 config 설정대로
+            return PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.ASC, "createdAt")
+            );
+    }
+
     // TODO : 다른 도메인 페이지네이션 추가 (멘토링 클래스 참고)
 }

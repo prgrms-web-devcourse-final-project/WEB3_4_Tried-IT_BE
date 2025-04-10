@@ -27,6 +27,7 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 COPY .env .env
+COPY firebase-adminsdk.json firebase-adminsdk.json
 
 # 실행할 JAR 파일 지정
 ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]

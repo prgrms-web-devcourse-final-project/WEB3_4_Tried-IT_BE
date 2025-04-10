@@ -30,6 +30,7 @@ import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.entity.ModificationStatus;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
@@ -110,9 +111,7 @@ public class ApplyControllerTest {
 			.phone("010-1234-5678")
 			.email("mentor@example.com")
 			.introduction("테스트 멘토 소개")
-			.bestFor("테스트 특기")
-			.approvalStatus(Mentor.ApprovalStatus.APPROVED)
-			.modificationStatus(Mentor.ModificationStatus.NONE)
+			.modificationStatus(ModificationStatus.NONE)
 			.build();
 		mentor = mentorRepository.save(mentor);
 
@@ -184,9 +183,7 @@ public class ApplyControllerTest {
 			.phone("010-9876-5432")
 			.email("othermentor@test.com")
 			.introduction("다른 멘토 소개")
-			.bestFor("다른 멘토 특기")
-			.approvalStatus(Mentor.ApprovalStatus.APPROVED)
-			.modificationStatus(Mentor.ModificationStatus.NONE)
+			.modificationStatus(ModificationStatus.NONE)
 			.build();
 		mentorRepository.save(mentor);
 
@@ -411,6 +408,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
 	}
+
 
 }
 

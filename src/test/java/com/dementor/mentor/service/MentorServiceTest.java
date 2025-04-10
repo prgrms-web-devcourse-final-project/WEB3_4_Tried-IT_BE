@@ -1,30 +1,39 @@
 package com.dementor.mentor.service;
 
-import com.dementor.domain.job.entity.Job;
-import com.dementor.domain.job.repository.JobRepository;
-import com.dementor.domain.member.entity.Member;
-import com.dementor.domain.member.entity.UserRole;
-import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.domain.mentor.dto.request.MentorApplicationRequest;
-import com.dementor.domain.mentor.dto.request.MentorChangeRequest;
-import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
-import com.dementor.domain.mentor.dto.response.MentorChangeResponse;
-import com.dementor.domain.mentor.dto.response.MentorInfoResponse;
-import com.dementor.domain.mentor.entity.Mentor;
-import com.dementor.domain.mentor.entity.MentorApplication;
-import com.dementor.domain.mentor.entity.MentorModification;
-import com.dementor.domain.mentor.repository.MentorApplicationRepository;
-import com.dementor.domain.mentor.repository.MentorModificationRepository;
-import com.dementor.domain.mentor.repository.MentorRepository;
-import com.dementor.domain.mentor.service.MentorService;
-import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.dementor.domain.job.entity.Job;
+import com.dementor.domain.job.repository.JobRepository;
+import com.dementor.domain.member.entity.Member;
+import com.dementor.domain.member.entity.UserRole;
+import com.dementor.domain.member.repository.MemberRepository;
+import com.dementor.domain.mentor.dto.request.MentorApplyProposalRequest;
+import com.dementor.domain.mentor.dto.request.MentorChangeRequest;
+import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
+import com.dementor.domain.mentor.dto.response.MentorChangeResponse;
+import com.dementor.domain.mentor.dto.response.MentorInfoResponse;
+import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.entity.ModificationStatus;
+import com.dementor.domain.mentor.exception.MentorException;
+import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.domain.mentor.service.MentorService;
+import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
+import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
+import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
+import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
+import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
+import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
 
 @SpringBootTest
 @Transactional
@@ -49,16 +58,16 @@ public class MentorServiceTest {
     private Member testMentorMember;
     private Mentor testMentor;
     @Autowired
-    private MentorModificationRepository mentorModificationRepository;
+    private MentorEditProposalRepository mentorEditProposalRepository;
 
     @Autowired
-    private MentorApplicationRepository mentorApplicationRepository;
+    private MentorApplyProposalRepository mentorApplyProposalRepository;
 
     @BeforeEach
     void setUp() {
         // 기존 데이터 정리
-        mentorModificationRepository.deleteAll();
-        mentorApplicationRepository.deleteAll();
+        mentorEditProposalRepository.deleteAll();
+        mentorApplyProposalRepository.deleteAll();
         mentorRepository.deleteAll();
         memberRepository.deleteAll();
         jobRepository.deleteAll();
@@ -99,9 +108,7 @@ public class MentorServiceTest {
                 .phone("01012345678")
                 .email("mentor@example.com")
                 .introduction("테스트 자기소개")
-                .bestFor("테스트 특기")
-                .approvalStatus(Mentor.ApprovalStatus.APPROVED)
-                .modificationStatus(Mentor.ModificationStatus.NONE)
+                .modificationStatus(ModificationStatus.NONE)
                 .build();
         testMentor = mentorRepository.save(testMentor);
     }
@@ -111,8 +118,8 @@ public class MentorServiceTest {
     @DisplayName("멘토 지원 성공")
     void applyMentorSuccess() {
         // Given
-        MentorApplicationRequest.MentorApplicationRequestDto requestDto =
-                new MentorApplicationRequest.MentorApplicationRequestDto(
+        MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto =
+                new MentorApplyProposalRequest.MentorApplyProposalRequestDto(
                         testMember.getId(),
                         testMember.getName(),
                         testJob.getId(),
@@ -129,19 +136,19 @@ public class MentorServiceTest {
         mentorService.applyMentor(requestDto);
 
         // Then
-        MentorApplication savedApplication = mentorApplicationRepository.findByMemberId(testMember.getId())
+        MentorApplyProposal savedApplication = mentorApplyProposalRepository.findByMemberId(testMember.getId())
                 .orElse(null);
         assertNotNull(savedApplication, "멘토 지원 정보가 저장되지 않았습니다.");
         assertEquals("테스트 자기소개", savedApplication.getIntroduction());
-        assertEquals(MentorApplication.ApplicationStatus.PENDING, savedApplication.getStatus());
+        assertEquals(MentorApplyProposalStatus.PENDING, savedApplication.getStatus());
 
         // 승인 프로세스 - 지원 요청이 저장되어 있는 상태
-        MentorApplication application = mentorApplicationRepository.findLatestByMemberId(testMember.getId())
+        MentorApplyProposal application = mentorApplyProposalRepository.findLatestByMemberId(testMember.getId())
                 .orElseThrow(() -> new AssertionError("지원 정보가 없습니다."));
 
         // 승인 처리
-        application.updateStatus(MentorApplication.ApplicationStatus.APPROVED, null);
-        mentorApplicationRepository.save(application);
+        application.updateStatus(MentorApplyProposalStatus.APPROVED);
+        mentorApplyProposalRepository.save(application);
 
         // 멘토 생성
         Mentor mentor = application.toMentor();
@@ -151,8 +158,6 @@ public class MentorServiceTest {
         Mentor savedMentor = mentorRepository.findById(testMember.getId()).orElse(null);
         assertNotNull(savedMentor, "승인된 멘토 정보가 저장되지 않았습니다.");
         assertEquals("테스트 자기소개", savedMentor.getIntroduction());
-        assertEquals("테스트 특기", savedMentor.getBestFor());
-        assertEquals(Mentor.ApprovalStatus.APPROVED, savedMentor.getApprovalStatus());
     }
 
     @Test
@@ -161,8 +166,8 @@ public class MentorServiceTest {
     void applyMentorFailMemberNotFound() {
         // Given
         Long nonExistingMemberId = 9999L;
-        MentorApplicationRequest.MentorApplicationRequestDto requestDto =
-                new MentorApplicationRequest.MentorApplicationRequestDto(
+        MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto =
+                new MentorApplyProposalRequest.MentorApplyProposalRequestDto(
                         nonExistingMemberId,
                         "존재하지 않는 회원",
                         testJob.getId(),
@@ -176,7 +181,7 @@ public class MentorServiceTest {
                 );
 
         // When & Then
-        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.applyMentor(requestDto);
         });
 
@@ -188,8 +193,8 @@ public class MentorServiceTest {
     @DisplayName("이미 멘토인 회원이 멘토 지원 시 예외 발생")
     void applyMentorFailAlreadyMentor() {
         // Given
-        MentorApplicationRequest.MentorApplicationRequestDto requestDto =
-                new MentorApplicationRequest.MentorApplicationRequestDto(
+        MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto =
+                new MentorApplyProposalRequest.MentorApplyProposalRequestDto(
                         testMentorMember.getId(),
                         testMentorMember.getName(),
                         testJob.getId(),
@@ -203,7 +208,7 @@ public class MentorServiceTest {
                 );
 
         // When & Then
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.applyMentor(requestDto);
         });
 
@@ -214,6 +219,7 @@ public class MentorServiceTest {
     @Test
     @Order(4)
     @DisplayName("멘토 정보 수정 요청 성공")
+    @Transactional
     void createMentorUpdateRequestSuccess() {
         // Given
         MentorUpdateRequest.MentorUpdateRequestDto requestDto =
@@ -234,15 +240,15 @@ public class MentorServiceTest {
         // Then
         Mentor updatedMentor = mentorRepository.findById(testMentor.getId()).orElse(null);
         assertNotNull(updatedMentor, "멘토 정보가 조회되지 않습니다.");
-        assertEquals(Mentor.ModificationStatus.PENDING, updatedMentor.getModificationStatus());
+        assertEquals(ModificationStatus.PENDING, updatedMentor.getModificationStatus());
 
         // 수정 요청 승인 프로세스 - 수정 요청이 저장되어 있는 상태
-        MentorModification modification = mentorModificationRepository.findLatestByMemberId(testMentor.getId())
+        MentorEditProposal modification = mentorEditProposalRepository.findLatestByMemberId(testMentor.getId())
                 .orElseThrow(() -> new AssertionError("수정 요청이 없습니다."));
 
         // 승인 처리
-        modification.updateStatus(MentorModification.ModificationStatus.APPROVED, null);
-        mentorModificationRepository.save(modification);
+        modification.updateStatus(MentorEditProposalStatus.APPROVED);
+        mentorEditProposalRepository.save(modification);
 
         Mentor mentor = mentorRepository.findById(testMentor.getId()).orElseThrow();
         mentor.update(
@@ -250,18 +256,16 @@ public class MentorServiceTest {
                 8,
                 "01098765432",
                 "update@email.com",
-                "업데이트된 자기소개",
-                "업데이트된 특기"
+                "업데이트된 자기소개"
         );
-        mentor.updateModificationStatus(Mentor.ModificationStatus.NONE);
+        mentor.updateModificationStatus(ModificationStatus.NONE);
         mentorRepository.save(mentor);
 
         // Then - 변경 확인
         Mentor finalMentor = mentorRepository.findById(testMentor.getId()).orElseThrow();
         assertEquals("업데이트된 자기소개", finalMentor.getIntroduction());
-        assertEquals("업데이트된 특기", finalMentor.getBestFor());
         assertEquals(8, finalMentor.getCareer());
-        assertEquals(Mentor.ModificationStatus.NONE, finalMentor.getModificationStatus());
+        assertEquals(ModificationStatus.NONE, finalMentor.getModificationStatus());
     }
 
     @Test
@@ -283,62 +287,13 @@ public class MentorServiceTest {
                 );
 
         // When & Then
-        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.updateMentor(nonExistingMentorId, requestDto);
         });
 
         assertTrue(exception.getMessage().contains("멘토를 찾을 수 없습니다"));
     }
 
-    @Test
-    @Order(6)
-    @DisplayName("승인되지 않은 멘토 정보 수정 시 예외 발생")
-    void updateMentorFailNotApproved() {
-        // Given
-        Member unapprovedMember = Member.builder()
-                .nickname("unapprovedMember")
-                .password("password")
-                .name("미승인회원")
-                .email("unapproved@example.com")
-                .userRole(UserRole.MENTEE)
-                .build();
-        unapprovedMember = memberRepository.save(unapprovedMember);
-
-        Mentor unapprovedMentor = Mentor.builder()
-                .member(unapprovedMember)
-                .job(testJob)
-                .name(unapprovedMember.getName())
-                .currentCompany("테스트 회사")
-                .career(5)
-                .phone("01012345678")
-                .introduction("테스트 자기소개")
-                .bestFor("테스트 특기")
-                .approvalStatus(Mentor.ApprovalStatus.PENDING)
-                .modificationStatus(Mentor.ModificationStatus.NONE)
-                .build();
-        unapprovedMentor = mentorRepository.save(unapprovedMentor);
-
-        final Long unapprovedMentorId = unapprovedMentor.getId();
-
-        MentorUpdateRequest.MentorUpdateRequestDto requestDto =
-                new MentorUpdateRequest.MentorUpdateRequestDto(
-                        8,          // career
-                        "01098765432",    // phone
-                        "업데이트 회사",    // currentCompany
-                        1L,               // jobId (예시 값)
-                        "update@email.com", // email
-                        "업데이트된 자기소개", // introduction
-                        "업데이트된 특기",   // bestFor
-                        null              // attachmentId
-                );
-
-        // When & Then
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            mentorService.updateMentor(unapprovedMentorId, requestDto);
-        });
-
-        assertTrue(exception.getMessage().contains("승인되지 않은 멘토는 정보를 수정할 수 없습니다"));
-    }
 
     @Test
     @Order(7)
@@ -362,9 +317,7 @@ public class MentorServiceTest {
                 .career(5)
                 .phone("01012345678")
                 .introduction("테스트 자기소개")
-                .bestFor("테스트 특기")
-                .approvalStatus(Mentor.ApprovalStatus.APPROVED)
-                .modificationStatus(Mentor.ModificationStatus.PENDING)
+                .modificationStatus(ModificationStatus.PENDING)
                 .build();
         pendingMentor = mentorRepository.save(pendingMentor);
 
@@ -383,7 +336,7 @@ public class MentorServiceTest {
                 );
 
         // When & Then
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.updateMentor(pendingMentorId, requestDto);
         });
 
@@ -409,8 +362,6 @@ public class MentorServiceTest {
         assertEquals("01012345678", response.phone());
         assertEquals("테스트 회사", response.currentCompany());
         assertEquals("테스트 자기소개", response.introduction());
-        assertEquals("테스트 특기", response.bestFor());
-        assertEquals(Mentor.ApprovalStatus.APPROVED, response.approvalStatus());
     }
 
     @Test
@@ -421,50 +372,13 @@ public class MentorServiceTest {
         final Long nonExistingMentorId = 9999L;
 
         // When & Then
-        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.getMentorInfo(nonExistingMentorId);
         });
 
         assertTrue(exception.getMessage().contains("해당 멘토를 찾을 수 없습니다"));
     }
 
-    @Test
-    @Order(10)
-    @DisplayName("승인되지 않은 멘토 정보 조회 시 예외 발생")
-    void getMentorInfoFailNotApproved() {
-        // Given
-        Member unapprovedMember = Member.builder()
-                .nickname("unapprovedMember2")
-                .password("password")
-                .name("미승인회원2")
-                .email("unapproved2@example.com")
-                .userRole(UserRole.MENTEE)
-                .build();
-        unapprovedMember = memberRepository.save(unapprovedMember);
-
-        Mentor unapprovedMentor = Mentor.builder()
-                .member(unapprovedMember)
-                .job(testJob)
-                .name(unapprovedMember.getName())
-                .currentCompany("테스트 회사")
-                .career(5)
-                .phone("01012345678")
-                .introduction("테스트 자기소개")
-                .bestFor("테스트 특기")
-                .approvalStatus(Mentor.ApprovalStatus.PENDING)
-                .modificationStatus(Mentor.ModificationStatus.NONE)
-                .build();
-        unapprovedMentor = mentorRepository.save(unapprovedMentor);
-
-        final Long unapprovedMentorId = unapprovedMentor.getId();
-
-        // When & Then
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            mentorService.getMentorInfo(unapprovedMentorId);
-        });
-
-        assertTrue(exception.getMessage().contains("승인되지 않은 멘토 정보는 조회할 수 없습니다"));
-    }
 
     @Test
     @Order(11)
@@ -472,12 +386,12 @@ public class MentorServiceTest {
     void getModificationRequestsSuccess() {
         // Given
         // 수정 요청 생성 및 저장
-        MentorModification modification = MentorModification.builder()
+        MentorEditProposal modification = MentorEditProposal.builder()
                 .member(testMentorMember)
                 .changes("{\"career\":{\"before\":5,\"after\":8},\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
-                .status(MentorModification.ModificationStatus.PENDING)
+                .status(MentorEditProposalStatus.PENDING)
                 .build();
-        mentorModificationRepository.save(modification);
+        mentorEditProposalRepository.save(modification);
 
         // 조회 파라미터 설정
         MentorChangeRequest.ModificationRequestParams params =
@@ -490,7 +404,7 @@ public class MentorServiceTest {
         assertNotNull(response, "응답이 null이 아니어야 합니다.");
         assertFalse(response.modificationRequests().isEmpty(), "변경 요청 목록이 비어있지 않아야 합니다.");
         assertEquals(1, response.modificationRequests().size(), "변경 요청 목록의 크기가 1이어야 합니다.");
-        assertEquals(MentorModification.ModificationStatus.PENDING.name(),
+        assertEquals(MentorEditProposalStatus.PENDING.name(),
                 response.modificationRequests().get(0).status(), "상태가 PENDING이어야 합니다.");
         assertNotNull(response.pagination(), "페이지네이션 정보가 null이 아니어야 합니다.");
         assertEquals(1, response.pagination().page(), "현재 페이지가 1이어야 합니다.");
@@ -504,20 +418,20 @@ public class MentorServiceTest {
     void getModificationRequestsWithStatusFilterSuccess() {
         // Given
         // PENDING 상태의 수정 요청 생성
-        MentorModification pendingModification = MentorModification.builder()
+        MentorEditProposal pendingModification = MentorEditProposal.builder()
                 .member(testMentorMember)
                 .changes("{\"career\":{\"before\":5,\"after\":8}}")
-                .status(MentorModification.ModificationStatus.PENDING)
+                .status(MentorEditProposalStatus.PENDING)
                 .build();
-        mentorModificationRepository.save(pendingModification);
+        mentorEditProposalRepository.save(pendingModification);
 
         // APPROVED 상태의 수정 요청 생성
-        MentorModification approvedModification = MentorModification.builder()
+        MentorEditProposal approvedModification = MentorEditProposal.builder()
                 .member(testMentorMember)
                 .changes("{\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
-                .status(MentorModification.ModificationStatus.APPROVED)
+                .status(MentorEditProposalStatus.APPROVED)
                 .build();
-        mentorModificationRepository.save(approvedModification);
+        mentorEditProposalRepository.save(approvedModification);
 
         // APPROVED 상태만 필터링하는 파라미터 설정
         MentorChangeRequest.ModificationRequestParams params =
@@ -530,7 +444,7 @@ public class MentorServiceTest {
         assertNotNull(response, "응답이 null이 아니어야 합니다.");
         assertFalse(response.modificationRequests().isEmpty(), "변경 요청 목록이 비어있지 않아야 합니다.");
         assertEquals(1, response.modificationRequests().size(), "변경 요청 목록의 크기가 1이어야 합니다.");
-        assertEquals(MentorModification.ModificationStatus.APPROVED.name(),
+        assertEquals(MentorEditProposalStatus.APPROVED.name(),
                 response.modificationRequests().get(0).status(), "상태가 APPROVED이어야 합니다.");
     }
 
@@ -544,7 +458,7 @@ public class MentorServiceTest {
                 new MentorChangeRequest.ModificationRequestParams(null, 1, 10);
 
         // When & Then
-        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+        Exception exception = assertThrows(MentorException.class, () -> {
             mentorService.getModificationRequests(nonExistingMentorId, params);
         });
 

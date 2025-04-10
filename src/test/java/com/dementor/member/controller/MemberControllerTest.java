@@ -251,7 +251,7 @@ public class MemberControllerTest {
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(jsonPath("$.isSuccess").value(false))
 			.andExpect(jsonPath("$.code").value("400"))
-			.andExpect(jsonPath("$.message").value("인증번호가 유효하지 않습니다."));
+			.andExpect(jsonPath("$.message").value("인증번호가 유효하지 않습니다"));
 	}
 }
 

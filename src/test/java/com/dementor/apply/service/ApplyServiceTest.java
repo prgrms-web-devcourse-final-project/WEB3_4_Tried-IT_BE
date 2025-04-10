@@ -2,7 +2,9 @@ package com.dementor.apply.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +29,7 @@ import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.entity.ModificationStatus;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.exception.MentoringClassException;
@@ -98,9 +101,7 @@ public class ApplyServiceTest {
 			.phone("010-1234-5678")
 			.email("mentor@example.com")
 			.introduction("테스트 멘토 소개")
-			.bestFor("테스트 특기")
-			.approvalStatus(Mentor.ApprovalStatus.APPROVED)
-			.modificationStatus(Mentor.ModificationStatus.NONE)
+			.modificationStatus(ModificationStatus.NONE)
 			.build();
 		mentor = mentorRepository.save(mentor);
 
@@ -251,6 +252,19 @@ public class ApplyServiceTest {
 		assertEquals(5, page2Result.getApplyments().size());
 	}
 
+	
+	@Test
+	@DisplayName("존재하지 않는 멘토링 클래스의 신청 날짜 목록 조회 시 예외 발생")
+	void getApplySchedulesByInvalidClassId() {
+		LocalDate now = LocalDate.now();
+		String startDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String endDate = now.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
+		Long nonExistentClassId = 9999L;
+
+		assertThrows(MentoringClassException.class, () -> {
+			applyService.getApplySchedulesByClassId(nonExistentClassId, startDate, endDate);
+		});
+	}
 }
 

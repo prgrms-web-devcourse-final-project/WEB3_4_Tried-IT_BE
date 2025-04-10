@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dementor.domain.apply.dto.request.ApplyCreateRequest;
 import com.dementor.domain.apply.dto.response.ApplyIdResponse;
 import com.dementor.domain.apply.dto.response.ApplyPageResponse;
+import com.dementor.domain.apply.dto.response.ApplyScheduleResponse;
 import com.dementor.domain.apply.service.ApplyService;
 import com.dementor.global.ApiResponse;
 import com.dementor.global.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -68,5 +70,19 @@ public class ApplyController {
 	) {
 		ApplyPageResponse response = applyService.getApplyList(userDetails.getId(), page-1, size);
 		return ApiResponse.of(true, HttpStatus.OK, "멘토링 신청 목록을 조회했습니다", response);
+	}
+
+	// 특정 멘토링 신청 날짜 목록 조회
+	@Operation(summary = "멘토링 신청 날짜 목록 조회", description = "특정 멘토링 클래스에 신청된 날짜 목록을 조회합니다")
+	@GetMapping("/schedules/{classId}")
+	public ApiResponse<ApplyScheduleResponse> getApplySchedules(
+		@PathVariable Long classId,
+		@Parameter(description = "시작 날짜", example = "20250408")
+		@RequestParam("startDate") String startDate,
+		@Parameter(description = "종료 날짜", example = "20250430")
+		@RequestParam("endDate") String endDate) {
+
+		ApplyScheduleResponse response = applyService.getApplySchedulesByClassId(classId, startDate, endDate);
+		return ApiResponse.of(true, HttpStatus.OK, "멘토링 신청 날짜 목록을 조회했습니다", response);
 	}
 }

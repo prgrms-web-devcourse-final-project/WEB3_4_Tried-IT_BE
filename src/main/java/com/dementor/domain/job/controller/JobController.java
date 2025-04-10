@@ -18,7 +18,6 @@ import java.util.List;
 @RequestMapping("/api/admin/job")
 @RequiredArgsConstructor
 @Tag(name = "직무 API", description = "멘토 지원, 정보 수정, 조회 API")
-@PreAuthorize("hasRole('ADMIN')")
 public class JobController {
     private final JobService jobService;
 
@@ -34,6 +33,7 @@ public class JobController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> createJob(
             @RequestBody JobCreaeteRequest request
     ) {
@@ -47,6 +47,7 @@ public class JobController {
     }
 
     @PutMapping("/{jobId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> updateJob(
             @PathVariable Long jobId,
             @RequestBody JobUpdateRequest request
@@ -61,6 +62,7 @@ public class JobController {
     }
 
     @DeleteMapping("/{jobId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> deleteJob(
             @PathVariable Long jobId
     ) {

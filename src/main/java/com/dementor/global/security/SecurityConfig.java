@@ -1,6 +1,5 @@
 package com.dementor.global.security;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -38,10 +37,6 @@ public class SecurityConfig {
 	private final TokenService tokenService;
 	private final CookieUtil cookieUtil;
 
-	// 쿠키 이름을 위한 값 추가
-	@Value("${jwt.cookie.name}")
-	private String cookieName;
-
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
@@ -64,7 +59,6 @@ public class SecurityConfig {
 
 				//내 정보, 로그아웃 제외 허용
 				.requestMatchers("/api/members/**").permitAll()
-
 				.requestMatchers("/api/admin/login").permitAll()
 
 				//관리자 로그인제외 권한

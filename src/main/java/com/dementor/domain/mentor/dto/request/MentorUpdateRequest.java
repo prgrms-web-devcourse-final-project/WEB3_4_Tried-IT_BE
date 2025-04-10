@@ -1,9 +1,13 @@
 package com.dementor.domain.mentor.dto.request;
 
-import com.dementor.domain.mentor.entity.Mentor;
-import jakarta.validation.constraints.*;
-
 import java.util.List;
+
+import com.dementor.domain.mentor.entity.Mentor;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 public class MentorUpdateRequest {
     public record MentorUpdateRequestDto(
@@ -11,7 +15,7 @@ public class MentorUpdateRequest {
             Integer career,
 
             @Size(max = 20, message = "전화번호는 20자 이내로 입력해주세요.")
-            @Pattern(regexp = "^\\d{10,11}$", message = "전화번호는 10~11자리 숫자만 입력 가능합니다.")
+            @Pattern(regexp = "^[\\d-]{10,13}$", message = "전화번호는 10~11자리 숫자만 입력 가능합니다.")
             String phone,
 
             @Size(max = 50, message = "현재 회사는 50자 이내로 입력해주세요.")
@@ -38,8 +42,7 @@ public class MentorUpdateRequest {
                     (currentCompany != null && !currentCompany.equals(mentor.getCurrentCompany())) ||
                     (jobId != null && !jobId.equals(mentor.getJob().getId())) ||
                     (email != null && !email.equals(mentor.getMember().getEmail())) ||
-                    (introduction != null && !introduction.equals(mentor.getIntroduction())) ||
-                    (bestFor != null && !bestFor.equals(mentor.getBestFor()));
+                    (introduction != null && !introduction.equals(mentor.getIntroduction()));
         }
     }
 }
