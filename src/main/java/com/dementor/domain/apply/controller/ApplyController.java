@@ -1,7 +1,6 @@
 package com.dementor.domain.apply.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +36,6 @@ public class ApplyController {
 
 	@Operation(summary = "멘토링 신청", description = "멘토링을 신청합니다")
 	@PostMapping
-	@PreAuthorize("hasRole('MENTOR') or hasRole('MENTEE')")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<ApplyIdResponse>  createApply(
 		@RequestBody ApplyCreateRequest req,
@@ -51,7 +49,6 @@ public class ApplyController {
 
 	@Operation(summary = "멘토링 신청 취소", description = "멘토링 신청을 취소합니다")
 	@DeleteMapping("/{applyId}")
-	@PreAuthorize("hasRole('MENTOR') or hasRole('MENTEE')")
 	public ApiResponse<Void> deleteApply(
 		@PathVariable(name = "applyId") Long applyId,
 		@AuthenticationPrincipal CustomUserDetails userDetails
@@ -65,7 +62,6 @@ public class ApplyController {
 
 	@Operation(summary = "멘토링 신청 목록 조회", description = "내가 신청한 멘토링 목록을 조회합니다")
 	@GetMapping
-	@PreAuthorize("hasRole('MENTOR') or hasRole('MENTEE')")
 	@ResponseStatus(HttpStatus.OK)
 	public ApiResponse<ApplyPageResponse> getApply(
 		@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -79,7 +75,6 @@ public class ApplyController {
 	// 특정 멘토링 신청 날짜 목록 조회
 	@Operation(summary = "멘토링 신청 날짜 목록 조회", description = "특정 멘토링 클래스에 신청된 날짜 목록을 조회합니다")
 	@GetMapping("/schedules/{classId}")
-	@PreAuthorize("hasRole('MENTOR') or hasRole('MENTEE')")
 	public ApiResponse<ApplyScheduleResponse> getApplySchedules(
 		@PathVariable Long classId,
 		@AuthenticationPrincipal CustomUserDetails userDetails,
