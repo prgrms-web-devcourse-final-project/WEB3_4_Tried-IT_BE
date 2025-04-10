@@ -71,8 +71,7 @@ public class ApplyService {
 				.member(member)
 				.build();
 
-
-
+		Apply savedApply = applyRepository.save(apply);
 
 		//---------------챗 영역---------------------
 		//  멘토, 멘티 memberId 추출
@@ -85,8 +84,6 @@ public class ApplyService {
 				mentor.getId(),
 				mentee.getId()
 		);
-
-		Apply savedApply = applyRepository.save(apply);
 
 		return ApplyIdResponse.from(savedApply, room);
 	}
