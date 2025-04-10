@@ -11,12 +11,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-
 @Entity
 @Builder
 @AllArgsConstructor
 @Getter
-
 public class Admin extends BaseEntity {
 
 	@Id
