@@ -6,6 +6,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.dementor.domain.chat.entity.ChatRoom;
+import com.dementor.domain.chat.entity.RoomType;
+import com.dementor.domain.chat.repository.ChatRoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +60,9 @@ public class ApplyServiceTest {
 
 	@Autowired
 	private JobRepository jobRepository;
+
+	@Autowired
+	private ChatRoomRepository chatRoomRepository;
 
 	private MentoringClass mentoringClass;
 	private Long mentoringClassId;
@@ -119,7 +125,7 @@ public class ApplyServiceTest {
 	}
 
 	@Test
-	@DisplayName("멘토링 신청 성공")
+	@DisplayName("멘토링 신청 성공 & 채팅방 자동 생성 확인")
 	void createApplySuccess() {
 
 		ApplyCreateRequest request = new ApplyCreateRequest();
@@ -133,6 +139,7 @@ public class ApplyServiceTest {
 
 		assertNotNull(result);
 		assertNotNull(result.getApplyId());
+		assertNotNull(result.getChatRoomId()); // ChatRoom
 
 
 		Apply savedApply = applyRepository.findById(result.getApplyId()).orElse(null);
@@ -140,6 +147,13 @@ public class ApplyServiceTest {
 		assertEquals("테스트 문의입니다", savedApply.getInquiry());
 		assertEquals(ApplyStatus.PENDING, savedApply.getApplyStatus());
 		assertEquals(mentoringClassId, savedApply.getMentoringClass().getId());
+
+		// ChatRoom 저장 검증
+		ChatRoom savedRoom = chatRoomRepository.findById(result.getChatRoomId()).orElse(null);
+		assertNotNull(savedRoom);
+		assertEquals(RoomType.MENTORING_CHAT, savedRoom.getRoomType());
+		assertEquals(savedApply.getMentoringClass().getMentor().getId(), savedRoom.getMentorId());
+		assertEquals(savedApply.getMember().getId(), savedRoom.getMenteeId());
 	}
 
 	@Test
