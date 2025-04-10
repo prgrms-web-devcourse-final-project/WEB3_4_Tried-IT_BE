@@ -54,16 +54,16 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
+//			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
 
 
 			// static 리소스 추가
                             .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
 
 
+
 							.requestMatchers("/api/signup/**").permitAll()
 				.requestMatchers("/api/member/login").permitAll()
-				// .requestMatchers("/api/member/refresh").permitAll()
 
 				.requestMatchers("/api/admin/refresh").permitAll()
 				.requestMatchers("/api/members/refresh").permitAll()
