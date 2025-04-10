@@ -1,19 +1,20 @@
 package com.dementor.global.exception;
 
 
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import com.dementor.domain.apply.exception.ApplyErrorCode;
 import com.dementor.domain.apply.exception.ApplyException;
 import com.dementor.domain.member.exception.MemberErrorCode;
 import com.dementor.domain.member.exception.MemberException;
 import com.dementor.domain.mentor.exception.MentorErrorCode;
 import com.dementor.domain.mentor.exception.MentorException;
+import com.dementor.domain.mentoringclass.exception.MentoringClassException;
+import com.dementor.domain.mentoringclass.exception.MentoringClassExceptionCode;
 import com.dementor.domain.postattachment.exception.PostAttachmentException;
 import com.dementor.global.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
@@ -66,5 +67,13 @@ public class GlobalExceptionHandler {
 		return ApiResponse.of(false,
 			HttpStatus.FORBIDDEN,
 			e.getMessage());
+	}
+
+	@ExceptionHandler(MentoringClassException.class)
+	public ApiResponse<?> handleMentoringClassException(MentoringClassException e) {
+		MentoringClassExceptionCode errorCode = e.getErrorCode();
+		return ApiResponse.of(false,
+				errorCode.getStatus(),
+				errorCode.getMessage());
 	}
 }

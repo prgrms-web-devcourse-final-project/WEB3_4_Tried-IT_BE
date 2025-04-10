@@ -2,6 +2,7 @@ package com.dementor.domain.job.service;
 
 import com.dementor.domain.job.dto.request.JobCreaeteRequest;
 import com.dementor.domain.job.dto.request.JobUpdateRequest;
+import com.dementor.domain.job.dto.response.JobCreateResponse;
 import com.dementor.domain.job.dto.response.JobFindResponse;
 import com.dementor.domain.job.dto.response.JobUpdateResponse;
 import com.dementor.domain.job.entity.Job;
@@ -25,13 +26,13 @@ public class JobService {
                 .toList();
     }
 
-    public Long createJob(JobCreaeteRequest request) {
+    public JobCreateResponse createJob(JobCreaeteRequest request) {
         Job job = Job.builder()
                 .name(request.jobName())
                 .build();
         job = jobRepository.save(job);
 
-        return job.getId();
+        return JobCreateResponse.of(job.getId(), request.jobName());
     }
 
     public JobUpdateResponse updateJob(Long jobId, JobUpdateRequest request) {
