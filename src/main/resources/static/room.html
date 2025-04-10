@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>채팅 테스트 페이지</h1>
+
+<form id="messageForm">
+    <input type="text" id="senderId" placeholder="보내는 사람 ID" required />
+    <input type="text" id="senderType" placeholder="보내는 사람 타입 (e.g. USER)" required />
+    <input type="text" id="content" placeholder="메시지 내용" required />
+    <button type="submit">보내기</button>
+</form>
+
+<ul id="chatMessages"></ul>
+
+<script>
+    const chatRoomId = 38; // 테스트할 채팅방 ID
+    const socket = new SockJS("/ws");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log("📡 연결됨:", frame);
+
+        stompClient.subscribe(`/topic/chat.room.${chatRoomId}`, function (message) {
+            const data = JSON.parse(message.body);
+            const listItem = document.createElement("li");
+            listItem.textContent = `[${data.sentAt}] ${data.senderId} (${data.senderType}) : ${data.content}`;
+            document.getElementById("chatMessages").prepend(listItem);
+        });
+    });
+
+    document.getElementById("messageForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const senderId = document.getElementById("senderId").value.trim();
+        const senderType = document.getElementById("senderType").value.trim();
+        const content = document.getElementById("content").value.trim();
+
+        if (!senderId || !senderType || !content) {
+            alert("모든 필드를 입력해주세요.");
+            return;
+        }
+
+        stompClient.send(
+            `/app/chat/rooms/${chatRoomId}/messages/create`,
+            {},
+            JSON.stringify({ senderId, senderType, content })
+        );
+
+        document.getElementById("content").value = "";
+    });
+</script>
+</body>
+</html>

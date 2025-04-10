@@ -88,7 +88,10 @@ public class SecurityConfig {
 				.requestMatchers("/swagger-ui/**").permitAll() // swagger 주소 허용
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/").permitAll()
-				.anyRequest().authenticated()
+// room html 테스트
+							.requestMatchers("/room.html", "/ws/**", "/topic/**").permitAll()
+							.anyRequest().authenticated()
+
 			)
 
 			.sessionManagement(session -> session

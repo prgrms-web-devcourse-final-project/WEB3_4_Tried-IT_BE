@@ -8,10 +8,13 @@ import com.dementor.domain.chat.entity.MessageType;
 import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
+
+//import com.dementor.global.websocket.StompRabbitMqBrokerConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+//import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,72 +29,81 @@ public class ChatMessageService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     private static final TimeZone KST = TimeZone.getTimeZone("Asia/Seoul");
 
-    // 1. 메시지 저장 - REST 방식 사용 가능
-    @Transactional
-    public ChatMessageResponseDto sendMessage(ChatMessageSendDto dto) {
-        ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
-                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
-
-        ChatMessage chatMessage = ChatMessage.builder()
-                .chatRoom(chatRoom)
-                .senderId(dto.getSenderId())
-                .senderType(dto.getSenderType())
-                .content(dto.getContent())
-//                .messageType(MessageType.TALK)
-                .sentAt(LocalDateTime.now())
-                .build();
-
-        chatMessageRepository.save(chatMessage);
-        chatRoom.updateLastMessageTime(chatMessage.getSentAt());
-
-        ChatMessageResponseDto responseDto = new ChatMessageResponseDto(
-//                chatMessage.getMessageType(),
-                chatMessage.getChatRoom().getChatRoomId(),
-                chatMessage.getSenderId(),
-                chatMessage.getSenderType(),
-//                null, // nickname은 추후 처리
-                chatMessage.getContent(),
-                chatMessage.getSentAt().atZone(KST.toZoneId())
-        );
-
-        // 2. 실시간 브로드캐스트
-        messagingTemplate.convertAndSend("/sub/chat/room/" + chatRoom.getChatRoomId(), responseDto);
-
-        return responseDto;
-    }
-
-    // 3. 메시지 목록 조회
+    /**
+     * ① 메시지 목록 조회
+     * - 사용자가 채팅방에 입장할 때 과거 메시지 불러오기
+     */
     @Transactional(readOnly = true)
     public List<ChatMessageResponseDto> getMessages(Long chatRoomId, Long beforeMessageId) {
         List<ChatMessage> messages;
 
         if (beforeMessageId != null && beforeMessageId > 0) {
-            // 이전 메시지부터 20개 가져오기 (과거로 스크롤)
+            // 과거 스크롤 시: 이전 메시지부터 20개
             messages = chatMessageRepository
                     .findTop20ByChatRoom_ChatRoomIdAndChatMessageIdLessThanOrderByChatMessageIdDesc(chatRoomId, beforeMessageId);
         } else {
-            // 최초 입장 시 최신 메시지부터
+            // 첫 입장 시: 최신 메시지부터 20개
             messages = chatMessageRepository
                     .findTop20ByChatRoom_ChatRoomIdOrderByChatMessageIdDesc(chatRoomId);
         }
 
-        // 프론트에선 오래된 → 최신 순으로 보여줘야 하므로 역순 정렬
-        List<ChatMessage> sorted = messages.stream()
+        // 오래된 순으로 정렬
+        return messages.stream()
                 .sorted((m1, m2) -> Long.compare(m1.getChatMessageId(), m2.getChatMessageId()))
-                .toList();
+                .map(chatMessage -> new ChatMessageResponseDto(
+                        chatMessage.getChatRoom().getChatRoomId(),
+                        chatMessage.getSenderId(),
+                        chatMessage.getSenderType(),
+                        chatMessage.getContent(),
+                        chatMessage.getSentAt().atZone(KST.toZoneId())
+                )).toList();
+    }
 
-        return sorted.stream().map(chatMessage -> new ChatMessageResponseDto(
+    /**
+     * ② 메시지 저장 및 실시간 전송
+     * - 사용자가 메시지를 보낼 때 호출
+     * - DB에 저장 후, RabbitMQ 통해 실시간 브로드캐스트
+     */
+    @Transactional
+    public ChatMessageResponseDto sendMessage(ChatMessageSendDto dto) {
+        // 채팅방 유효성 검사
+        ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+        // 메시지 엔티티 생성
+        ChatMessage chatMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .senderId(dto.getSenderId())
+                .senderType(dto.getSenderType())
+                .content(dto.getContent())
+                .sentAt(LocalDateTime.now())
+                .build();
+
+        // DB 저장
+        chatMessageRepository.save(chatMessage);
+        chatRoom.updateLastMessageTime(chatMessage.getSentAt());
+
+        // 응답 DTO 생성
+        ChatMessageResponseDto responseDto = new ChatMessageResponseDto(
                 chatMessage.getChatRoom().getChatRoomId(),
                 chatMessage.getSenderId(),
                 chatMessage.getSenderType(),
                 chatMessage.getContent(),
                 chatMessage.getSentAt().atZone(KST.toZoneId())
-        )).collect(Collectors.toList());
+        );
+
+        // RabbitMQ로 브로드캐스트 전송
+        rabbitTemplate.convertAndSend(
+                "amq.topic",
+                "chat.room." + chatRoom.getChatRoomId(),
+                responseDto
+        );
+
+        return responseDto;
     }
-
-
 }
+

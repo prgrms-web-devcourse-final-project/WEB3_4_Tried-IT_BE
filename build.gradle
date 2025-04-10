@@ -71,6 +71,11 @@ dependencies {
     implementation 'org.springframework:spring-messaging'
     implementation 'org.springframework.security:spring-security-messaging'
 
+    implementation("org.springframework.boot:spring-boot-starter-amqp") // RabbitMQ 관련 // 추가됨
+    implementation("org.springframework.boot:spring-boot-starter-websocket") // 웹소켓 관련 // 추가됨
+    testImplementation("org.springframework.amqp:spring-rabbit-test") // RabbitMQ 테스트 // 추가됨
+    implementation 'io.projectreactor.netty:reactor-netty:1.1.17'
+
 
 }
 

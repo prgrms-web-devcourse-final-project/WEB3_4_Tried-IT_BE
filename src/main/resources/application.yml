@@ -8,7 +8,16 @@ spring:
       - optional:file:.env[.properties]
   jackson:
     time-zone: Asia/Seoul
+#--------------------
+  thymeleaf:
+    cache: false
 
+  rabbitmq:
+      host: localhost
+      port: 5672
+      username: admin
+      password: admin
+#----------------------
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}
