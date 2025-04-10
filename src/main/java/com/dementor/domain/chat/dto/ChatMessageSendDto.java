@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageSendDto {  //입력 DTO(send용) 클라이언트->서버
+public class ChatMessageSendDto {  // 클라이언트->서버
 
 //    private MessageType type;  // ENTER / MESSAGE / EXIT
     private Long chatRoomId;

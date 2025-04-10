@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -137,7 +138,7 @@ public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Long viewerId, Str
                 room.getChatRoomId(),
                 room.getRoomType(),
                 lastMessage != null ? lastMessage.getContent() : null,
-                lastMessage != null ? lastMessage.getSentAt() : null,
+                lastMessage != null ? lastMessage.getSentAt().atZone(ZoneId.of("Asia/Seoul")) : null,
                 targetNickname
         );
     }

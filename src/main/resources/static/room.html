@@ -28,8 +28,26 @@
 
         stompClient.subscribe(`/topic/chat.room.${chatRoomId}`, function (message) {
             const data = JSON.parse(message.body);
+
+            // 👉 로그 추가
+            console.log("📥 수신된 메시지 데이터:", data);
+
             const listItem = document.createElement("li");
-            listItem.textContent = `[${data.sentAt}] ${data.senderId} (${data.senderType}) : ${data.content}`;
+
+            // KST로 변환해서 포맷팅
+            const sentAt = new Date(data.sentAt);
+            const formattedTime = sentAt.toLocaleString("ko-KR", {
+                timeZone: "Asia/Seoul",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+
+            //메시지 필드 출력
+            listItem.textContent = `[${formattedTime}] ${data.senderId} (${data.senderType}) : ${data.content}`;
             document.getElementById("chatMessages").prepend(listItem);
         });
     });

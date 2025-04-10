@@ -49,7 +49,7 @@ public class ChatMessageController {
     public void receiveMessageViaWebsocket(
             @DestinationVariable Long chatRoomId,
             ChatMessageSendDto dto
-            // ,@AuthenticationPrincipal CustomUserDetails user // 로그인한 사용자 정보 자동 주입
+//             ,@AuthenticationPrincipal CustomUserDetails user // 로그인한 사용자 정보 자동 주입
 
     ) {
         dto.setChatRoomId(chatRoomId); // 채팅방 Id는 경로 변수로 주입
