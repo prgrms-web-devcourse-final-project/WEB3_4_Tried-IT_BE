@@ -17,6 +17,7 @@ public class PaginationConfig implements WebMvcConfigurer {
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolverList) {
         // 멘토링 클래스용 resolver
         resolverList.add(mentoringClassPageableResolver());
+        resolverList.add(mentorEditPageableResolver());
 
         // TODO : 다른 도메인 resolver 생성
 //        resolverList.add(다른 도메인 resolver 메소드());
@@ -38,6 +39,26 @@ public class PaginationConfig implements WebMvcConfigurer {
                         10, // 10개로 전체 제한
                         Sort.by(Sort.Direction.DESC, "createdAt") // 특별히 정렬 기준을 안보낼때 createdAt을 기준으로 정렬
                 ));
+
+        return resolver;
+    }
+
+    @Bean // 멘토 정보수정 resolver 등록
+    public PageableHandlerMethodArgumentResolver mentorEditPageableResolver() {
+        // HandlerMethodArgumentResolver 얘가 request param의 page size 이런거를 알아서 처리해줌
+        PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
+
+        resolver.setOneIndexedParameters(true); // 1부터 시작하는 페이지 번호 (false는 시작 페이지가 0)
+        resolver.setMaxPageSize(50); // 최대 페이지 크기 50으로 제한
+        resolver.setPageParameterName("page"); // 페이지 파라미터 이름
+        resolver.setSizeParameterName("size"); // 크기 파라미터 이름
+
+        resolver.setFallbackPageable(
+            PageRequest.of(
+                0,
+                10, // 10개로 전체 제한
+                Sort.by(Sort.Direction.DESC, "createdAt") // 특별히 정렬 기준을 안보낼때 createdAt을 기준으로 정렬
+            ));
 
         return resolver;
     }

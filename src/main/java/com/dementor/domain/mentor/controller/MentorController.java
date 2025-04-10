@@ -21,7 +21,6 @@ import com.dementor.domain.apply.entity.ApplyStatus;
 import com.dementor.domain.mentor.dto.request.MentorApplyProposalRequest;
 import com.dementor.domain.mentor.dto.request.MentorApplyStatusRequest;
 import com.dementor.domain.mentor.dto.request.MentorChangeRequest;
-import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
 import com.dementor.domain.mentor.dto.response.MentorApplyResponse;
 import com.dementor.domain.mentor.dto.response.MentorApplyStatusResponse;
 import com.dementor.domain.mentor.dto.response.MentorChangeResponse;
@@ -32,6 +31,7 @@ import com.dementor.domain.mentor.entity.ModificationStatus;
 import com.dementor.domain.mentor.exception.MentorException;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentor.service.MentorService;
+import com.dementor.domain.mentoreditproposal.dto.MentorEditProposalRequest;
 import com.dementor.domain.mentoringclass.service.MentoringClassService;
 import com.dementor.domain.postattachment.exception.PostAttachmentException;
 import com.dementor.global.ApiResponse;
@@ -83,10 +83,11 @@ public class MentorController {
     @Operation(summary = "멘토 정보 수정", description = "멘토 정보 수정 API - 로그인한 멘토 본인만 가능")
     public ResponseEntity<ApiResponse<?>> updateMentor(
             @PathVariable Long memberId,
-            @RequestBody @Valid MentorUpdateRequest.MentorUpdateRequestDto requestDto,
+            @RequestBody @Valid MentorEditProposalRequest requestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         try {
+
             boolean exists = mentorRepository.existsById(memberId);
             if (!exists) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -99,6 +100,8 @@ public class MentorController {
                         .body(ApiResponse.of(false, HttpStatus.FORBIDDEN, "해당 멘토 정보를 수정할 권한이 없습니다."));
             }
             mentorService.updateMentor(memberId, requestDto);
+
+
 
             MentorUpdateResponse response = MentorUpdateResponse.of(memberId, ModificationStatus.PENDING);
 

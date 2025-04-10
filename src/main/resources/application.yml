@@ -69,6 +69,8 @@ firebase:
     url-expiry: 30   # 서명된 URL 만료 시간(일)
 
 server:
+  shutdown: graceful
+  forward-headers-strategy: native
   servlet:
     encoding:
       charset: UTF-8

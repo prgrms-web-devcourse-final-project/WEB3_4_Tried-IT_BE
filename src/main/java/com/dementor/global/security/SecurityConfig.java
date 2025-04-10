@@ -1,5 +1,7 @@
 package com.dementor.global.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -14,7 +16,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.dementor.global.security.cookie.CookieUtil;
 import com.dementor.global.security.jwt.JwtAccessDeniedHandler;
@@ -40,6 +45,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
+			.cors(cors -> cors.configurationSource(corsConfigurationSource())) // 요거 추가!
 			.csrf(AbstractHttpConfigurer::disable)
 
 			.exceptionHandling(exceptionHandling -> exceptionHandling
@@ -94,4 +100,23 @@ public class SecurityConfig {
 		return authConfig.getAuthenticationManager();
 	}
 
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowedOrigins(List.of(
+			"https://www.dementor.site",
+			"https://api.dementor.site",
+			"https://local.dementor.site:5173",
+			"https://admin-local.dementor.site:5174"
+		));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+		config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+		config.setExposedHeaders(List.of("Authorization"));
+		config.setAllowCredentials(true);
+		config.setMaxAge(3600L);
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+		return source;
+	}
 }

@@ -15,10 +15,19 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 	@Override
-	public void commence(HttpServletRequest request,
+	public void commence(
+		HttpServletRequest request,
 		HttpServletResponse response,
 		AuthenticationException authException) throws IOException {
-		// 인증되지 않은 요청에 대한 처리
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증에 실패했습니다");
+
+		String origin = request.getHeader("Origin");
+		if (origin != null) {
+			response.setHeader("Access-Control-Allow-Origin", origin);
+			response.setHeader("Access-Control-Allow-Credentials", "true");
+		}
+
+		response.setContentType("application/json;charset=UTF-8");
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.getWriter().write("{\"message\": \"인증에 실패했습니다\"}");
 	}
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalResponse;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 
@@ -33,4 +34,7 @@ public interface MentorEditProposalRepository extends JpaRepository<MentorEditPr
     // 특정 멘토의 가장 최근 수정 요청 조회
     @Query("SELECT m FROM MentorEditProposal m WHERE m.member.id = :memberId ORDER BY m.createdAt DESC")
     Optional<MentorEditProposal> findLatestByMemberId(@Param("memberId") Long memberId);
+
+    // 요청 하나만 response
+    MentorEditProposal findOneRequestByMemberId(Long memberId);
 }

@@ -27,14 +27,14 @@ import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.dto.request.MentorApplyProposalRequest;
-import com.dementor.domain.mentor.dto.request.MentorUpdateRequest;
 import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.entity.ModificationStatus;
+import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
+import com.dementor.domain.mentoreditproposal.dto.MentorUpdateRequest;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
-import com.dementor.domain.mentor.entity.ModificationStatus;
-import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
-import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.global.security.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -258,7 +258,6 @@ public class MentorControllerTest {
         // 수정 요청을 생성 (이미 setUp 메서드에서 testMentor가 APPROVED 상태)
         MentorEditProposal modification = MentorEditProposal.builder()
                 .member(testMentor)
-                .changes("{\"career\":{\"before\":5,\"after\":8},\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
                 .status(MentorEditProposalStatus.PENDING)
                 .build();
         mentorEditProposalRepository.save(modification);
@@ -293,7 +292,7 @@ public class MentorControllerTest {
         // PENDING 상태의 수정 요청 생성
         MentorEditProposal pendingModification = MentorEditProposal.builder()
                 .member(testMentor)
-                .changes("{\"career\":{\"before\":5,\"after\":8}}")
+
                 .status(MentorEditProposalStatus.PENDING)
                 .build();
         mentorEditProposalRepository.save(pendingModification);
@@ -301,7 +300,7 @@ public class MentorControllerTest {
         // APPROVED 상태의 수정 요청 생성
         MentorEditProposal approvedModification = MentorEditProposal.builder()
                 .member(testMentor)
-                .changes("{\"phone\":{\"before\":\"01012345678\",\"after\":\"01098765432\"}}")
+
                 .status(MentorEditProposalStatus.APPROVED)
                 .build();
         mentorEditProposalRepository.save(approvedModification);
