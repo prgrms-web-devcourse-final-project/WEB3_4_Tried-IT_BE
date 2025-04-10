@@ -152,7 +152,6 @@ jobs:
               if [[ $ELAPSED_TIME -ge $TIMEOUT ]]; then
                 echo "❌ Timeout: $NEXT did not start in $TIMEOUT seconds."
                 docker stop "$NEXT"
-                docker rm "$NEXT"
                 exit 1
               fi
 
