@@ -50,7 +50,7 @@ jobs:
         run: echo "$DOT_ENV" > .env
       - name: Firebase Admin SDK JSON 생성
         env:
-          FIREBASE_ADMIN_SDK: ${{ secrets.FIREBASE_ADMINSDK_JSON }}
+          FIREBASE_ADMIN_SDK_JSON: ${{ secrets.FIREBASE_ADMINSDK_JSON }}
         run: echo "$FIREBASE_ADMINSDK_JSON" > firebase-adminsdk.json
       - name: Docker Buildx 설치
         uses: docker/setup-buildx-action@v2
