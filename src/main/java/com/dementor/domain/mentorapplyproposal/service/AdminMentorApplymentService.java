@@ -1,26 +1,25 @@
 package com.dementor.domain.mentorapplyproposal.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
+import com.dementor.domain.job.entity.Job;
+import com.dementor.domain.job.repository.JobRepository;
+import com.dementor.domain.member.entity.Member;
+import com.dementor.domain.member.entity.UserRole;
+import com.dementor.domain.member.repository.MemberRepository;
+import com.dementor.domain.mentor.entity.Mentor;
+import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentorapplyproposal.dto.request.ApplymentRejectRequest;
 import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentApprovalResponse;
 import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentDetailResponse;
 import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentRejectResponse;
 import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentResponse;
-import com.dementor.domain.job.entity.Job;
-import com.dementor.domain.job.repository.JobRepository;
-import com.dementor.domain.member.entity.Member;
-import com.dementor.domain.member.repository.MemberRepository;
-import com.dementor.domain.mentor.entity.Mentor;
-import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
-
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -74,8 +73,9 @@ public class AdminMentorApplymentService {
                 .email(applyment.getEmail())
                 .introduction(applyment.getIntroduction())
                 .build();
-
         mentorRepository.save(mentor);
+        member.updateUserRole(UserRole.MENTOR);
+        memberRepository.save(member);
 
         applyment.updateStatus(MentorApplyProposalStatus.APPROVED);
         MentorApplyProposal updatedApplyment = mentorApplyProposalRepository.save(applyment);

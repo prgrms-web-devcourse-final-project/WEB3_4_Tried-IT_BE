@@ -1,7 +1,12 @@
 package com.dementor.global.security;
 
-import java.util.List;
-
+import com.dementor.global.security.cookie.CookieUtil;
+import com.dementor.global.security.jwt.JwtAccessDeniedHandler;
+import com.dementor.global.security.jwt.JwtAuthenticationEntryPoint;
+import com.dementor.global.security.jwt.JwtAuthenticationFilter;
+import com.dementor.global.security.jwt.JwtTokenProvider;
+import com.dementor.global.security.jwt.service.TokenService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -21,14 +26,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.dementor.global.security.cookie.CookieUtil;
-import com.dementor.global.security.jwt.JwtAccessDeniedHandler;
-import com.dementor.global.security.jwt.JwtAuthenticationEntryPoint;
-import com.dementor.global.security.jwt.JwtAuthenticationFilter;
-import com.dementor.global.security.jwt.JwtTokenProvider;
-import com.dementor.global.security.jwt.service.TokenService;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -72,7 +70,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 
 				.requestMatchers(HttpMethod.GET, "/api/class").permitAll() // 모든 수업 조회 허용
-				.requestMatchers(HttpMethod.GET, "/api/class/{classId}").permitAll() // 특정 수업 조회 허용
+					.requestMatchers(HttpMethod.GET, "/api/class/{classId}").permitAll() // 특정 수업 조회 허용
+					.requestMatchers(HttpMethod.GET, "/api/admin/job").permitAll() // 특정 수업 조회 허용
 
 				.requestMatchers("/api/authenticate").permitAll()
 				.requestMatchers("/v3/api-docs/**").permitAll() // swagger 문서 허용
