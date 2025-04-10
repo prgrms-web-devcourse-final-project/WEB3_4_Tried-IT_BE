@@ -1,11 +1,5 @@
 package com.dementor.global;
 
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.admin.repository.AdminRepository;
 import com.dementor.domain.job.entity.Job;
@@ -15,9 +9,14 @@ import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.domain.mentoringclass.entity.MentoringClass;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Component
@@ -46,37 +45,37 @@ public class TestDataInit implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
 
-        if (jobRepository.count() == 1) {
-//			Job job = Job.builder()
-//					.name("백엔드 개발자")
-//					.build();
-//			jobRepository.save(job);
-
+        if (jobRepository.count() == 0) {
             Job job = Job.builder()
-                    .name("프론트엔드 개발자")
+                    .name("백엔드 개발자")
                     .build();
             jobRepository.save(job);
 
             Job job2 = Job.builder()
-                    .name("안드로이드 개발자")
+                    .name("프론트엔드 개발자")
                     .build();
             jobRepository.save(job2);
+
+            Job job3 = Job.builder()
+                    .name("안드로이드 개발자")
+                    .build();
+            jobRepository.save(job3);
         }
 
         if (memberRepository.count() == 0) {
             Member testMentor = Member.builder()
                     .email("mentor@test.com")
                     .password(passwordEncoder.encode("1234"))
-                    .nickname("테스트멘토")
-                    .name("TEST_NAME")
+                    .nickname("테스트 멘토")
+                    .name("테스트 멘토")
                     .userRole(UserRole.MENTOR)
                     .build();
 
             Member testMentee = Member.builder()
                     .email("mentee@test.com")
                     .password(passwordEncoder.encode("1234"))
-                    .nickname("테스트멘티")
-                    .name("TEST_NAME")
+                    .nickname("테스트 멘티")
+                    .name("테스트 멘티")
                     .userRole(UserRole.MENTEE)
                     .build();
 
@@ -106,7 +105,7 @@ public class TestDataInit implements CommandLineRunner {
         }
 
         if (mentorRepository.count() < 1) {
-            Member testMentor = memberRepository.findByEmail("tigerrla@naver.com")
+            Member testMentor = memberRepository.findByEmail("mentor@test.com")
                     .orElseThrow(() -> new RuntimeException("테스트 멘토 회원을 찾을 수 없습니다"));
 
             Job job2 = jobRepository.findByName("프론트엔드 개발자")
@@ -136,24 +135,24 @@ public class TestDataInit implements CommandLineRunner {
             adminRepository.save(admin);
         }
 
-        // if (mentoringClassRepository.count() <= 10) {
-        //     Mentor mentor = mentorRepository.findByName("테스트 멘토")
-        //             .orElseThrow(() -> new RuntimeException("테스트 멘토 회원을 찾을 수 없습니다"));
-        //
-        //     log.info("멘토 id : {}", mentor.getId());
-        //
-        //     for (int i = 0; i < 50; i++) {
-        //         MentoringClass mentoringClass = MentoringClass.builder()
-        //                 .title("테스트 데이터 제목" + i)
-        //                 .content("테스트 데이터 내용" + i)
-        //                 .price(10000 + i)
-        //                 .stack("Spring, Java")
-        //                 .mentor(mentor)
-        //                 .build();
-        //
-        //         MentoringClass savedMentoringClass = mentoringClassRepository.save(mentoringClass);
-        //         log.info("저장된 클래스 id : {}", savedMentoringClass.getId());
-        //     }
-        // }
+        if (mentoringClassRepository.count() <= 10) {
+            Mentor mentor = mentorRepository.findByName("테스트 멘토")
+                    .orElseThrow(() -> new RuntimeException("테스트 멘토 회원을 찾을 수 없습니다"));
+
+            log.info("멘토 id : {}", mentor.getId());
+
+            for (int i = 0; i < 50; i++) {
+                MentoringClass mentoringClass = MentoringClass.builder()
+                        .title("테스트 데이터 제목" + i)
+                        .content("테스트 데이터 내용" + i)
+                        .price(10000 + i)
+                        .stack("Spring, Java")
+                        .mentor(mentor)
+                        .build();
+
+                MentoringClass savedMentoringClass = mentoringClassRepository.save(mentoringClass);
+                log.info("저장된 클래스 id : {}", savedMentoringClass.getId());
+            }
+        }
     }
 }
