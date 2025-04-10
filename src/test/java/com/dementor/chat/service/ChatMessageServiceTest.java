@@ -2,13 +2,10 @@ package com.dementor.chat.service;
 
 import com.dementor.config.TestSecurityConfig;
 import com.dementor.domain.apply.dto.request.ApplyRequest;
-import com.dementor.domain.apply.dto.response.ApplyResponse;
 import com.dementor.domain.apply.service.ApplyService;
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
-import com.dementor.domain.chat.entity.ChatRoom;
 import com.dementor.domain.chat.entity.MessageType;
-import com.dementor.domain.chat.entity.RoomType;
 import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 import com.dementor.domain.chat.service.ChatMessageService;

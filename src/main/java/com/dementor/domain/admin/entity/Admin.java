@@ -10,20 +10,16 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import jakarta.persistence.*;
+import lombok.Setter;
 
 
-import lombok.Setter; //챗 부분 필요. ID부분만 붙여도됨
 
-@Setter
 @Entity
 @Builder
 @AllArgsConstructor
 @Getter
-@Table(name = "admin")
+
 public class Admin extends BaseEntity {
-
-
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
