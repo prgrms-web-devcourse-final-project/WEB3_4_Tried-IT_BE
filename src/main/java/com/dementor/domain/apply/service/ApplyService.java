@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -101,7 +100,10 @@ public class ApplyService {
 	}
 
 	//특정 멘토링 신청 날짜 목록 조회
-	public ApplyScheduleResponse getApplySchedulesByClassId(Long classId, String startDate, String endDate) {
+	public ApplyScheduleResponse getApplySchedulesByClassId(Long memberId, Long classId, String startDate, String endDate) {
+
+		memberRepository.findById(memberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
 		mentoringClassRepository.findById(classId)
 			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND));

@@ -27,6 +27,7 @@ import com.dementor.domain.job.entity.Job;
 import com.dementor.domain.job.repository.JobRepository;
 import com.dementor.domain.member.entity.Member;
 import com.dementor.domain.member.entity.UserRole;
+import com.dementor.domain.member.exception.MemberException;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.domain.mentor.entity.ModificationStatus;
@@ -252,7 +253,7 @@ public class ApplyServiceTest {
 		assertEquals(5, page2Result.getApplyments().size());
 	}
 
-	
+
 	@Test
 	@DisplayName("존재하지 않는 멘토링 클래스의 신청 날짜 목록 조회 시 예외 발생")
 	void getApplySchedulesByInvalidClassId() {
@@ -262,8 +263,8 @@ public class ApplyServiceTest {
 
 		Long nonExistentClassId = 9999L;
 
-		assertThrows(MentoringClassException.class, () -> {
-			applyService.getApplySchedulesByClassId(nonExistentClassId, startDate, endDate);
+		assertThrows(MemberException.class, () -> {
+			applyService.getApplySchedulesByClassId(nonExistentClassId, testMember.getId(), startDate, endDate);
 		});
 	}
 }
