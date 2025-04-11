@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
 //유효한 자격증명을 제공하지 않고 접근 -> 401 Unauthorized 에러 리턴 클래스
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

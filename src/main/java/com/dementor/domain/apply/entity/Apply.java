@@ -39,7 +39,6 @@ public class Apply {
 	@Enumerated(EnumType.STRING)
 	private ApplyStatus applyStatus;
 
-
 	//멘티가 신청한 날짜
 	@Column(nullable = false)
 	private LocalDateTime schedule;

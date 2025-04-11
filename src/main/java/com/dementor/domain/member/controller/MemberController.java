@@ -37,7 +37,7 @@ public class MemberController {
 		memberService.createMember(signupRequest);
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
-			.body(ApiResponse.of(true, HttpStatus.CREATED , "Create member"));
+			.body(ApiResponse.of(true, HttpStatus.CREATED, "Create member"));
 	}
 
 	@GetMapping("/isEmail")
@@ -57,7 +57,8 @@ public class MemberController {
 	}
 
 	@PostMapping("/verifyCode")
-	public ResponseEntity<ApiResponse<Void>> sendVerificationEmail(@RequestParam("email") String email) throws MessagingException {
+	public ResponseEntity<ApiResponse<Void>> sendVerificationEmail(@RequestParam("email") String email) throws
+		MessagingException {
 		emailService.sendVerificationEmail(email);
 		return ResponseEntity
 			.status(HttpStatus.OK)
@@ -65,7 +66,8 @@ public class MemberController {
 	}
 
 	@GetMapping("/verifyEmail")
-	public ResponseEntity<ApiResponse<Boolean>> verifyEmailCode(@RequestParam("email") String email, @RequestParam("verifyCode") String verifyCode){
+	public ResponseEntity<ApiResponse<Boolean>> verifyEmailCode(@RequestParam("email") String email,
+		@RequestParam("verifyCode") String verifyCode) {
 		boolean verified = emailService.verifyCode(email, verifyCode);
 		return ResponseEntity
 			.status(HttpStatus.OK)
@@ -74,7 +76,7 @@ public class MemberController {
 
 	@GetMapping("/info")
 	public ResponseEntity<ApiResponse<MemberInfoResponse>> info(Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+		CustomUserDetails userDetails = (CustomUserDetails)authentication.getPrincipal();
 		String email = userDetails.getUsername();
 
 		MemberInfoResponse memberInfo = memberService.getMemberInfo(email);
@@ -84,8 +86,9 @@ public class MemberController {
 	}
 
 	@PutMapping("/info")
-	public ResponseEntity<ApiResponse<Void>> modifyNickname(Authentication authentication, @RequestParam("nickname") String nickname) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	public ResponseEntity<ApiResponse<Void>> modifyNickname(Authentication authentication,
+		@RequestParam("nickname") String nickname) {
+		CustomUserDetails userDetails = (CustomUserDetails)authentication.getPrincipal();
 		String email = userDetails.getUsername();
 
 		memberService.modifyNickname(email, nickname);

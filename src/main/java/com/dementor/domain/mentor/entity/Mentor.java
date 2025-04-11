@@ -29,55 +29,54 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Mentor {
 
-    @Id
-    private Long id;
+	@Id
+	private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "member_id")
-    private Member member;
+	@OneToOne(fetch = FetchType.LAZY)
+	@MapsId
+	@JoinColumn(name = "member_id")
+	private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id", nullable = false)
-    private Job job;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "job_id", nullable = false)
+	private Job job;
 
-    @Column(length = 10, nullable = false)
-    private String name;
+	@Column(length = 10, nullable = false)
+	private String name;
 
-    @Column(length = 20)
-    private String currentCompany;
+	@Column(length = 20)
+	private String currentCompany;
 
-    @Column(nullable = false)
-    private Integer career;
+	@Column(nullable = false)
+	private Integer career;
 
-    @Column(length = 20, nullable = false)
-    private String phone;
+	@Column(length = 20, nullable = false)
+	private String phone;
 
-    @Column(length = 50, nullable = false)
-    @Email
-    private String email;
+	@Column(length = 50, nullable = false)
+	@Email
+	private String email;
 
-    @Column(nullable = false)
-    private String introduction;
+	@Column(nullable = false)
+	private String introduction;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private ModificationStatus modificationStatus = ModificationStatus.NONE;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	@Builder.Default
+	private ModificationStatus modificationStatus = ModificationStatus.NONE;
 
+	// 정보 수정 상태 변경 메서드
+	public void updateModificationStatus(ModificationStatus modificationStatus) {
+		this.modificationStatus = modificationStatus;
+	}
 
-    // 정보 수정 상태 변경 메서드
-    public void updateModificationStatus(ModificationStatus modificationStatus) {
-        this.modificationStatus = modificationStatus;
-    }
-
-    // 필드 수정 메서드
-    public void update(String currentCompany, Integer career, String introduction) {
-        this.currentCompany = currentCompany;
-        this.career = career;
-        // this.phone = phone;
-        // this.email = email;
-        this.introduction = introduction;
-        this.modificationStatus = ModificationStatus.PENDING;
-    }
+	// 필드 수정 메서드
+	public void update(String currentCompany, Integer career, Job job, String introduction,
+		ModificationStatus modificationStatus) {
+		this.currentCompany = currentCompany;
+		this.job = job;
+		this.career = career;
+		this.introduction = introduction;
+		this.modificationStatus = modificationStatus;
+	}
 }

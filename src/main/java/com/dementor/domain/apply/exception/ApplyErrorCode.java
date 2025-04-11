@@ -14,7 +14,6 @@ public enum ApplyErrorCode {
 	NOT_YOUR_APPLY(HttpStatus.FORBIDDEN, "본인이 신청한 멘토링만 취소할 수 있습니다."),
 	CAN_NOT_APPLY_YOUR_CLASS(HttpStatus.FORBIDDEN, "자신의 멘토링 클래스에 신청할 수 없습니다.");
 
-
 	private final HttpStatus status;
 	private final String message;
 }

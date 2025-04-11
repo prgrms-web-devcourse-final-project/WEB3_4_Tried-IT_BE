@@ -72,7 +72,6 @@ public class MentorApplyControllerTest {
 	private MentoringClass testMentoringClass;
 	private Member testMentor;
 
-
 	@BeforeEach
 	void setUp() {
 
@@ -87,7 +86,6 @@ public class MentorApplyControllerTest {
 		testMentor = memberRepository.save(testMentor);
 		mentorPrincipal = CustomUserDetails.of(testMentor);
 
-
 		// 테스트용 멘티 생성
 		testMentee = Member.builder()
 			.email("mentee@test.com")
@@ -97,7 +95,6 @@ public class MentorApplyControllerTest {
 			.userRole(UserRole.MENTEE)
 			.build();
 		testMentee = memberRepository.save(testMentee);
-
 
 		// 직업 생성
 		Job job = Job.builder()
@@ -128,7 +125,6 @@ public class MentorApplyControllerTest {
 			.mentor(mentor)
 			.build();
 		testMentoringClass = mentoringClassRepository.save(testMentoringClass);
-
 
 		for (int i = 0; i < 15; i++) {
 			Apply apply = Apply.builder()
@@ -196,7 +192,6 @@ public class MentorApplyControllerTest {
 			.andExpect(jsonPath("$.data.applyments.length()").value(5))
 			.andExpect(jsonPath("$.data.pagination.page").value(2));
 	}
-
 
 	@Test
 	@DisplayName("멘토링 신청 승인 테스트")
@@ -270,7 +265,5 @@ public class MentorApplyControllerTest {
 			.andExpect(jsonPath("$.message").value("존재하지 않는 신청입니다."))
 			.andDo(print());
 	}
-
-
 
 }

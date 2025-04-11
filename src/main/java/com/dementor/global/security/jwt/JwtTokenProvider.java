@@ -54,10 +54,10 @@ public class JwtTokenProvider implements InitializingBean {
 	private final RefreshTokenRepository refreshTokenRepository;
 
 	public JwtTokenProvider(
-			@Value("${jwt.secret}") String secret,
-			@Value("${jwt.access.expiration}") long accessTokenValidityInMilliseconds,
-			@Value("${jwt.refresh.expiration}") long refreshTokenValidityInMilliseconds,
-			RefreshTokenRepository refreshTokenRepository
+		@Value("${jwt.secret}") String secret,
+		@Value("${jwt.access.expiration}") long accessTokenValidityInMilliseconds,
+		@Value("${jwt.refresh.expiration}") long refreshTokenValidityInMilliseconds,
+		RefreshTokenRepository refreshTokenRepository
 	) {
 		this.secret = secret;
 		this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds;
@@ -98,7 +98,6 @@ public class JwtTokenProvider implements InitializingBean {
 			.getBody()
 			.getSubject();
 	}
-
 
 	// Authentication에 권한 정보를 이요한 토큰 생성
 	public String createMemberToken(Authentication authentication, Long memberId, String nickname) {
@@ -158,8 +157,6 @@ public class JwtTokenProvider implements InitializingBean {
 		Collection<? extends GrantedAuthority> authorities = Collections.singletonList(
 			new SimpleGrantedAuthority(claims.get(AUTHORITIES_KEY, String.class))
 		);
-
-
 
 		// role에 따라 Member 또는 Admin으로 구분
 		String role = claims.get(AUTHORITIES_KEY, String.class);
@@ -228,11 +225,11 @@ public class JwtTokenProvider implements InitializingBean {
 			return true;
 		} catch (io.jsonwebtoken.security.SignatureException | MalformedJwtException e) {
 			System.out.println("잘못된 JWT 서명"); //log 로 변경
-		} catch (ExpiredJwtException e){
+		} catch (ExpiredJwtException e) {
 			System.out.println("만료된 JWT 토큰"); //log 로 변경
-		} catch (UnsupportedJwtException e){
+		} catch (UnsupportedJwtException e) {
 			System.out.println("지원되지 않는 JWT 토큰"); //log 로 변경
-		}catch (IllegalArgumentException e){
+		} catch (IllegalArgumentException e) {
 			System.out.println("잘못된 JWT 토큰"); //log 로 변경
 		}
 		return false;

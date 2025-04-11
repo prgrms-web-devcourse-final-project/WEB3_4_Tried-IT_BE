@@ -1,18 +1,5 @@
 package com.dementor.mentor.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.dementor.domain.job.entity.Job;
 import com.dementor.domain.job.repository.JobRepository;
 import com.dementor.domain.member.entity.Member;
@@ -30,10 +17,18 @@ import com.dementor.domain.mentor.service.MentorService;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
-import com.dementor.domain.mentoreditproposal.dto.MentorUpdateRequest;
+import com.dementor.domain.mentoreditproposal.dto.MentorEditProposalRequest;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
+
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -128,7 +123,6 @@ public class MentorServiceTest {
 				5,
 				"테스트 회사",
 				"테스트 자기소개",
-				"테스트 특기",
 				null
 			);
 
@@ -176,7 +170,6 @@ public class MentorServiceTest {
 				5,
 				"테스트 회사",
 				"테스트 자기소개",
-				"테스트 특기",
 				null
 			);
 
@@ -203,7 +196,6 @@ public class MentorServiceTest {
 				5,
 				"테스트 회사",
 				"테스트 자기소개",
-				"테스트 특기",
 				null
 			);
 
@@ -222,17 +214,13 @@ public class MentorServiceTest {
 	@Transactional
 	void createMentorUpdateRequestSuccess() {
 		// Given
-		MentorUpdateRequest.MentorUpdateRequestDto requestDto =
-			new MentorUpdateRequest.MentorUpdateRequestDto(
-				8,
-				"01098765432",
-				"업데이트 회사",
-				1L,
-				"update@email.com",
-				"업데이트된 자기소개",
-				"업데이트된 특기",
-				null
-			);
+		MentorEditProposalRequest requestDto = new MentorEditProposalRequest(
+			testJob.getId(),                // jobId
+			8,                      // career
+			"업데이트 회사",         // currentCompany
+			"업데이트된 자기소개",    // introduction
+			null                   // attachmentId
+		);
 
 		// When
 		mentorService.updateMentor(testMentor.getId(), requestDto);
@@ -241,6 +229,10 @@ public class MentorServiceTest {
 		Mentor updatedMentor = mentorRepository.findById(testMentor.getId()).orElse(null);
 		assertNotNull(updatedMentor, "멘토 정보가 조회되지 않습니다.");
 		assertEquals(ModificationStatus.PENDING, updatedMentor.getModificationStatus());
+
+		Job job = jobRepository.findById(testJob.getId())
+			.orElseThrow(() -> new AssertionError("JOB이 없습니다."));
+		;
 
 		// 수정 요청 승인 프로세스 - 수정 요청이 저장되어 있는 상태
 		MentorEditProposal modification = mentorEditProposalRepository.findLatestByMemberId(testMentor.getId())
@@ -256,7 +248,9 @@ public class MentorServiceTest {
 			8,
 			// "01098765432",
 			// "update@email.com",
-			"업데이트된 자기소개"
+			job,
+			"업데이트된 자기소개",
+			ModificationStatus.APPROVED
 		);
 		mentor.updateModificationStatus(ModificationStatus.NONE);
 		mentorRepository.save(mentor);
@@ -274,17 +268,13 @@ public class MentorServiceTest {
 	void updateMentorFailMentorNotFound() {
 		// Given
 		final Long nonExistingMentorId = 9999L;
-		MentorUpdateRequest.MentorUpdateRequestDto requestDto =
-			new MentorUpdateRequest.MentorUpdateRequestDto(
-				8,          // career
-				"01098765432",    // phone
-				"업데이트 회사",    // currentCompany
-				1L,               // jobId (예시 값)
-				"update@email.com", // email
-				"업데이트된 자기소개", // introduction
-				"업데이트된 특기",   // bestFor
-				null              // attachmentId
-			);
+		MentorEditProposalRequest requestDto = new MentorEditProposalRequest(
+			1L,                     // jobId
+			8,                      // career
+			"업데이트 회사",         // currentCompany
+			"업데이트된 자기소개",   // introduction
+			null                    // attachmentId
+		);
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
@@ -322,17 +312,13 @@ public class MentorServiceTest {
 
 		final Long pendingMentorId = pendingMentor.getId();
 
-		MentorUpdateRequest.MentorUpdateRequestDto requestDto =
-			new MentorUpdateRequest.MentorUpdateRequestDto(
-				8,          // career
-				"01098765432",    // phone
-				"업데이트 회사",    // currentCompany
-				1L,               // jobId (예시 값)
-				"update@email.com", // email
-				"업데이트된 자기소개", // introduction
-				"업데이트된 특기",   // bestFor
-				null              // attachmentId
-			);
+		MentorEditProposalRequest requestDto = new MentorEditProposalRequest(
+			1L,                     // jobId
+			8,                      // career
+			"업데이트 회사",         // currentCompany
+			"업데이트된 자기소개",   // introduction
+			null                    // attachmentId
+		);
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
@@ -386,6 +372,10 @@ public class MentorServiceTest {
 		// 수정 요청 생성 및 저장
 		MentorEditProposal modification = MentorEditProposal.builder()
 			.member(testMentorMember)
+			.job(testJob)
+			.career(5)
+			.currentCompany("업데이트된 회사")
+			.introduction("업데이트된 자기소개")
 			.status(MentorEditProposalStatus.PENDING)
 			.build();
 		mentorEditProposalRepository.save(modification);
@@ -418,6 +408,10 @@ public class MentorServiceTest {
 		// PENDING 상태의 수정 요청 생성
 		MentorEditProposal pendingModification = MentorEditProposal.builder()
 			.member(testMentorMember)
+			.job(testJob)
+			.career(5)
+			.currentCompany("업데이트된 회사")
+			.introduction("업데이트된 자기소개")
 			.status(MentorEditProposalStatus.PENDING)
 			.build();
 		mentorEditProposalRepository.save(pendingModification);
@@ -425,6 +419,10 @@ public class MentorServiceTest {
 		// APPROVED 상태의 수정 요청 생성
 		MentorEditProposal approvedModification = MentorEditProposal.builder()
 			.member(testMentorMember)
+			.job(testJob)
+			.career(5)
+			.currentCompany("업데이트된 회사")
+			.introduction("업데이트된 자기소개")
 			.status(MentorEditProposalStatus.APPROVED)
 			.build();
 		mentorEditProposalRepository.save(approvedModification);

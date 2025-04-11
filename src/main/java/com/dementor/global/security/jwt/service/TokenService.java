@@ -83,7 +83,6 @@ public class TokenService {
 			throw new RuntimeException("토큰이 일치하지 않습니다");
 		}
 
-
 		Claims claims = Jwts
 			.parserBuilder()
 			.setSigningKey(tokenProvider.getKey())
@@ -91,7 +90,7 @@ public class TokenService {
 			.parseClaimsJws(refreshToken)
 			.getBody();
 
-		RefreshToken_Role role =  RefreshToken_Role.fromRole((String)claims.get("sub"));
+		RefreshToken_Role role = RefreshToken_Role.fromRole((String)claims.get("sub"));
 		CustomUserDetails userDetails = (CustomUserDetails)customUserDetailsService.loadUserByUsername(userIdentifier);
 
 		String newAccessToken;
@@ -113,7 +112,6 @@ public class TokenService {
 		// 리프레시 토큰은 재사용
 		return new TokenDto(newAccessToken, refreshToken);
 	}
-
 
 	public void logout(String userEmail) {
 		refreshTokenRepository.deleteByUserIdentifier(userEmail);

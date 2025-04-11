@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class JobUpdateRequest {
-    String jobName;
+	String jobName;
 
 }

@@ -29,7 +29,6 @@ public class SwaggerConfig {
 				.bearerFormat("JWT")
 			);
 
-
 		return new OpenAPI()
 			.info(new Info()
 				.title("API 문서")

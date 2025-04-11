@@ -21,14 +21,13 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
 	@Value("${jwt.secret}")
 	private String secret;
 
-
 	@Override
 	public void save(String userIdentifier, String refreshToken, long expiration) {
 		String key = KEY_PREFIX + userIdentifier;
 		try {
 			redisTemplate.opsForValue().set(key, refreshToken);
 			redisTemplate.expire(key, expiration, TimeUnit.MILLISECONDS);
-		}catch (Exception e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Failed to save refresh token", e);
 		}
 	}
@@ -77,7 +76,6 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
 			}
 
 			redisTemplate.delete(key);
-
 
 		} catch (Exception e) {
 			return;

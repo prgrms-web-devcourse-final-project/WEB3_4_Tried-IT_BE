@@ -61,8 +61,8 @@ public class MemberAuthController {
 			// 쿠키에는 액세스 토큰만 저장,
 			HttpHeaders headers = new HttpHeaders();
 			headers.add(HttpHeaders.SET_COOKIE, cookieUtil.createAccessTokenCookie(tokens.getAccessToken()).toString());
-			headers.add(HttpHeaders.SET_COOKIE, cookieUtil.createRefreshTokenCookie(tokens.getRefreshToken()).toString());
-
+			headers.add(HttpHeaders.SET_COOKIE,
+				cookieUtil.createRefreshTokenCookie(tokens.getRefreshToken()).toString());
 
 			return ResponseEntity.ok()
 				.headers(headers)
@@ -89,7 +89,7 @@ public class MemberAuthController {
 
 		return ResponseEntity.ok()
 			.headers(headers)
-			.body(ApiResponse.of(true, HttpStatus.OK,"로그아웃 성공"));
+			.body(ApiResponse.of(true, HttpStatus.OK, "로그아웃 성공"));
 	}
 
 }

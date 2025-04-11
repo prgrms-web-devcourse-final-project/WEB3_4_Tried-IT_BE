@@ -62,6 +62,22 @@ dependencies {
 
     //firebase-storage
     implementation 'com.google.firebase:firebase-admin:9.1.1'
+    // spring hateoas
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+
+
+    //WebSocket + STOMP 관련
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework:spring-messaging'
+    implementation 'org.springframework.security:spring-security-messaging'
+
+    implementation("org.springframework.boot:spring-boot-starter-amqp") // RabbitMQ 관련 // 추가됨
+    implementation("org.springframework.boot:spring-boot-starter-websocket") // 웹소켓 관련 // 추가됨
+    testImplementation("org.springframework.amqp:spring-rabbit-test") // RabbitMQ 테스트 // 추가됨
+    implementation 'io.projectreactor.netty:reactor-netty:1.1.17'
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
+
+
 }
 
 tasks.named('test') {

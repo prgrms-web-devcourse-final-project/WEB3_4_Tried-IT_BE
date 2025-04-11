@@ -40,14 +40,14 @@ public class EmailService {
 
 		String subject = "[DeMentor] 이메일 인증 코드";
 		String content = """
-                <div style="font-family: Arial, sans-serif; text-align: center;">
-                    <h2>이메일 인증 코드</h2>
-                    <p>아래 인증 코드를 입력하여 이메일 인증을 완료하세요.</p>
-                    <h1 style="color: #007bff;">%s</h1>
-                    <p>이 인증 코드는 10분 후 만료됩니다.</p>
-                    <p>감사합니다.<br>DeMentor 팀 드림</p>
-                </div>
-                """.formatted(code);
+			<div style="font-family: Arial, sans-serif; text-align: center;">
+			    <h2>이메일 인증 코드</h2>
+			    <p>아래 인증 코드를 입력하여 이메일 인증을 완료하세요.</p>
+			    <h1 style="color: #007bff;">%s</h1>
+			    <p>이 인증 코드는 10분 후 만료됩니다.</p>
+			    <p>감사합니다.<br>DeMentor 팀 드림</p>
+			</div>
+			""".formatted(code);
 
 		helper.setTo(email);
 		helper.setSubject(subject);
@@ -56,12 +56,12 @@ public class EmailService {
 		mailSender.send(message);
 	}
 
-	public boolean verifyCode(String email, String inputCode){
+	public boolean verifyCode(String email, String inputCode) {
 		String storedCode = redisTemplate.opsForValue().get("email:" + email);
 		if (storedCode != null && storedCode.equals(inputCode)) {
 			//redisTemplate.delete("email:" + email); 회원가입 시 인증코드로 검증 과정 필요
 			return true;
-		}else{
+		} else {
 			throw new MemberException(MemberErrorCode.INVALID_VERIFICATION_CODE);
 		}
 

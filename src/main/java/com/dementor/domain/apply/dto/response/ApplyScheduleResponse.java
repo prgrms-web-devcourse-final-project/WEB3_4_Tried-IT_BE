@@ -12,23 +12,23 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ApplyScheduleResponse {
-    private List<ScheduleItem> applyments;
+	private List<ScheduleItem> applyments;
 
-    public static ApplyScheduleResponse fromList(List<Apply> applies) {
-        List<ScheduleItem> scheduleItems = applies.stream()
-                .map(apply -> ScheduleItem.builder()
-                        .schedule(apply.getSchedule())
-                        .build())
-                .collect(Collectors.toList());
+	public static ApplyScheduleResponse fromList(List<Apply> applies) {
+		List<ScheduleItem> scheduleItems = applies.stream()
+			.map(apply -> ScheduleItem.builder()
+				.schedule(apply.getSchedule())
+				.build())
+			.collect(Collectors.toList());
 
-        return ApplyScheduleResponse.builder()
-                .applyments(scheduleItems)
-                .build();
-    }
+		return ApplyScheduleResponse.builder()
+			.applyments(scheduleItems)
+			.build();
+	}
 
-    @Getter
-    @Builder
-    public static class ScheduleItem {
-        private LocalDateTime schedule;
-    }
+	@Getter
+	@Builder
+	public static class ScheduleItem {
+		private LocalDateTime schedule;
+	}
 } 

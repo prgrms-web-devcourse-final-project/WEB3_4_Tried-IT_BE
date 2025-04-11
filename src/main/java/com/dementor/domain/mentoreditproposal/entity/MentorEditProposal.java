@@ -29,35 +29,33 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MentorEditProposal extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id", nullable = false)
-    private Job job;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "job_id")
+	private Job job;
 
-    @Column(nullable = false)
-    private Integer career;
+	@Column
+	private Integer career;
 
-    @Column(length = 20)
-    private String currentCompany;
+	@Column(length = 20)
+	private String currentCompany;
 
-    @Column(nullable = false)
-    private String introduction;
+	@Column(length = 500)
+	private String introduction;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MentorEditProposalStatus status;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private MentorEditProposalStatus status;
 
-    //List<PostAttachment> attachments; // 첨부파일
-
-    // 수정 요청 상태 업데이트
-    public void updateStatus(MentorEditProposalStatus status) {
-        this.status = status;
-    }
+	// 수정 요청 상태 업데이트
+	public void updateStatus(MentorEditProposalStatus status) {
+		this.status = status;
+	}
 }

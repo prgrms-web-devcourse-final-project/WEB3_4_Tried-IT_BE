@@ -62,7 +62,6 @@ public class MemberControllerTest {
 		);
 	}
 
-
 	@Test
 	@DisplayName("이메일 중복확인 - 사용 가능한 이메일")
 	public void testIsEmailSuccess() throws Exception {
@@ -127,7 +126,6 @@ public class MemberControllerTest {
 			.andExpect(jsonPath("$.message").value("이미 존재하는 닉네임입니다"));
 	}
 
-
 	//TODO : 인증코드 전송 실패 코드 작성
 	@Test
 	@DisplayName("이메일 인증코드 전송 성공")
@@ -144,7 +142,6 @@ public class MemberControllerTest {
 			.andExpect(jsonPath("$.code").value("200"))
 			.andExpect(jsonPath("$.message").value("Send verification code"));
 	}
-
 
 	@Test
 	@DisplayName("이메일 인증코드 검증 - redis 에서 성공")
@@ -192,7 +189,6 @@ public class MemberControllerTest {
 		// given
 		String email = "test@email.com";
 		String wrongCode = "000000";
-
 
 		// when & then
 		mvc.perform(get("/api/members/verifyEmail")

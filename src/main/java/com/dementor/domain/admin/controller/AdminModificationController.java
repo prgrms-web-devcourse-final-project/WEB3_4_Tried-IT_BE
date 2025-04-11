@@ -5,7 +5,9 @@ import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalRespons
 import com.dementor.domain.mentoreditproposal.service.AdminModificationService;
 import com.dementor.global.ApiResponse;
 import com.dementor.global.common.pagination.PaginationUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,7 +30,8 @@ public class AdminModificationController {
 	) {
 		Pageable domainPageable = PaginationUtil.getModificationPageable(pageable);
 
-		Page<MentorEditFindAllRenewalResponse> result = adminModificationService.findAllModificationRequest(domainPageable);
+		Page<MentorEditFindAllRenewalResponse> result = adminModificationService.findAllModificationRequest(
+			domainPageable);
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(ApiResponse.of(
@@ -57,18 +60,18 @@ public class AdminModificationController {
 
 	@PutMapping("/modify/{memberId}/reject")
 	public ResponseEntity<ApiResponse<MentorEditUpdateRenewalResponse>> rejectMentorUpdate(
-			@PathVariable Long memberId
+		@PathVariable Long memberId
 	) {
 		MentorEditUpdateRenewalResponse response = adminModificationService.rejectMentorUpdate(memberId);
 
 		return ResponseEntity
-				.status(HttpStatus.OK)
-				.body(ApiResponse.of(
-						true,
-						HttpStatus.OK,
-						"수정 성공",
-						response
-				));
+			.status(HttpStatus.OK)
+			.body(ApiResponse.of(
+				true,
+				HttpStatus.OK,
+				"수정 성공",
+				response
+			));
 	}
 
 }

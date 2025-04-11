@@ -1,17 +1,5 @@
 package com.dementor.domain.mentor.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Service;
-
 import com.dementor.domain.apply.entity.Apply;
 import com.dementor.domain.apply.entity.ApplyStatus;
 import com.dementor.domain.apply.repository.ApplyRepository;
@@ -36,17 +24,25 @@ import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
 import com.dementor.domain.mentoreditproposal.dto.MentorEditProposalRequest;
-import com.dementor.domain.mentoreditproposal.dto.MentorUpdateRequest;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
 import com.dementor.domain.postattachment.repository.PostAttachmentRepository;
-import com.dementor.domain.postattachment.service.PostAttachmentService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,13 +53,11 @@ public class MentorService {
 	private final PostAttachmentRepository attachmentRepository;
 	private final MentorEditProposalRepository mentorEditProposalRepository;
 	private final MentorApplyProposalRepository mentorApplyProposalRepository;
-	private final ObjectMapper objectMapper;
-	private final PostAttachmentService postAttachmentService;
 	private final ApplyRepository applyRepository;
 
 	//멘토 지원하기
 	@Transactional
-	public void applyMentor(MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto) {
+	public MentorApplyProposal applyMentor(MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto) {
 		// 회원 엔티티 조회
 		Member member = memberRepository.findById(requestDto.memberId())
 			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
@@ -116,15 +110,15 @@ public class MentorService {
 					});
 			}
 		}
+		return savedApplication;
 	}
 
-	//TODO: 꼭 삭제해야함 테스트 오류때문에 만들어놓음
+	//멘토 정보 업데이트
 	@Transactional
-	public void updateMentor(Long memberId, MentorUpdateRequest.MentorUpdateRequestDto requestDto) {
+	public MentorEditProposal updateMentor(Long memberId, MentorEditProposalRequest requestDto) {
 		Mentor mentor = mentorRepository.findById(memberId)
 			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
 				"멘토를 찾을 수 없습니다: " + memberId));
-
 
 		// 현재 정보 수정 요청 중인지 확인
 		if (mentor.getModificationStatus() == ModificationStatus.PENDING) {
@@ -138,30 +132,25 @@ public class MentorService {
 				"변경된 내용이 없습니다.");
 		}
 
-		// 변경 사항 추출
-		Map<String, Map<String, Object>> changes = extractChanges(mentor, requestDto);
-
-		// 변경 사항을 JSON으로 변환
-		String changesJson;
-		try {
-			changesJson = objectMapper.writeValueAsString(changes);
-		} catch (JsonProcessingException e) {
-			throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
-				"변경 내용을 JSON으로 변환하는데 실패했습니다: " + e.getMessage());
-		}
+		Job job = jobRepository.findById(requestDto.getJobId())
+			.orElseThrow(() -> new MentorException(MentorErrorCode.JOB_NOT_FOUND,
+				"직무 정보를 찾을 수 없습니다: " + requestDto.getJobId()));
 
 		// 수정 요청 엔티티 생성 및 저장
 		MentorEditProposal modification = MentorEditProposal.builder()
 			.member(mentor.getMember())
+			.career(requestDto.getCareer())
+			.currentCompany(requestDto.getCurrentCompany())
+			.job(job)
+			.introduction(requestDto.getIntroduction())
 			.status(MentorEditProposalStatus.PENDING)
 			.build();
 
 		MentorEditProposal savedModification = mentorEditProposalRepository.save(modification);
 
 		// 첨부 파일 처리
-		if (requestDto.attachmentId() != null && !requestDto.attachmentId().isEmpty()) {
-			for (Long attachmentId : requestDto.attachmentId()) {
-				// 첨부 파일 존재 여부 확인
+		if (requestDto.getAttachmentId() != null && !requestDto.getAttachmentId().isEmpty()) {
+			for (Long attachmentId : requestDto.getAttachmentId()) {
 				attachmentRepository.findById(attachmentId)
 					.ifPresent(attachment -> {
 						if (!attachment.getMember().getId().equals(mentor.getMember().getId())) {
@@ -177,56 +166,8 @@ public class MentorService {
 		// 멘토의 수정 상태 업데이트
 		mentor.updateModificationStatus(ModificationStatus.PENDING);
 		mentorRepository.save(mentor);
-	}
 
-
-
-	//멘토 정보 업데이트
-	@Transactional
-	public void updateMentor(Long memberId, MentorEditProposalRequest requestDto) {
-		Mentor mentor = mentorRepository.findById(memberId)
-			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"멘토를 찾을 수 없습니다: " + memberId));
-
-		// 현재 정보 수정 요청 중인지 확인
-		if (mentor.getModificationStatus() == ModificationStatus.PENDING) {
-			throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
-				"이미 정보 수정 요청 중입니다: " + memberId);
-		}
-
-		// 변경 사항 추출
-		//Map<String, Map<String, Object>> changes = extractChanges(mentor, requestDto);
-
-		// 변경 사항을 JSON으로 변환
-		// String changesJson;
-		// try {
-		//     changesJson = objectMapper.writeValueAsString(changes);
-		// } catch (JsonProcessingException e) {
-		//     throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
-		//             "변경 내용을 JSON으로 변환하는데 실패했습니다: " + e.getMessage());
-		// }
-		Job job = jobRepository.findById(requestDto.getJobId())
-			.orElseThrow(() -> new RuntimeException("job not found"));
-
-		// 수정 요청 엔티티 생성 및 저장
-		MentorEditProposal modification = MentorEditProposal.builder()
-			.member(mentor.getMember())
-			.job(job)
-			.career(requestDto.getCareer())
-			.currentCompany(requestDto.getCurrentCompany())
-			.introduction(requestDto.getIntroduction())
-			.status(MentorEditProposalStatus.PENDING)
-			.build();
-
-		MentorEditProposal mentorEditProposalSaved = mentorEditProposalRepository.save(modification);
-
-		// 첨부 파일 처리
-		//PostAttachment attachment = PostAttachment.builder()
-
-
-		// 멘토의 수정 상태 업데이트
-		mentor.updateModificationStatus(ModificationStatus.PENDING);
-		mentorRepository.save(mentor);
+		return savedModification;
 	}
 
 	//멘토 정보 조회
@@ -299,91 +240,36 @@ public class MentorService {
 	}
 
 	//멘토 정보 수정 요청을 DTO로 변환합니다.
-	private MentorChangeResponse.ChangeRequestData convertToChangeRequestData(MentorEditProposal modification) {
+	private MentorChangeResponse.ChangeRequestData convertToChangeRequestData(MentorEditProposal proposal) {
 		Map<String, MentorChangeResponse.FieldChange<?>> modifiedFields = new HashMap<>();
 
-		try {
-			// Map<String, Map<String, Object>> changes = objectMapper.readValue(
-			// 	modification.getChanges(),
-			// 	new TypeReference<Map<String, Map<String, Object>>>() {
-			// 	}
-			// );
+		// 기존 멘토 정보가 필요하므로 Member(=Mentor) 엔티티를 통해 접근해야 함
+		Mentor mentor = mentorRepository.findById(proposal.getMember().getId())
+			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND, "멘토 정보를 찾을 수 없습니다."));
 
-			// for (Map.Entry<String, Map<String, Object>> entry : changes.entrySet()) {
-			// 	String fieldName = entry.getKey();
-			// 	Map<String, Object> change = entry.getValue();
-			//
-			// 	Object before = change.get("before");
-			// 	Object after = change.get("after");
-			//
-			// 	modifiedFields.put(fieldName, new MentorChangeResponse.FieldChange<>(before, after));
-			// }
-		} catch (Exception e) {
-			// JSON 파싱 실패 시 빈 맵 반환
+		if (!proposal.getCareer().equals(mentor.getCareer())) {
+			modifiedFields.put("career",
+				new MentorChangeResponse.FieldChange<>(mentor.getCareer(), proposal.getCareer()));
+		}
+		if (!proposal.getCurrentCompany().equals(mentor.getCurrentCompany())) {
+			modifiedFields.put("currentCompany",
+				new MentorChangeResponse.FieldChange<>(mentor.getCurrentCompany(), proposal.getCurrentCompany()));
+		}
+		if (!proposal.getJob().getId().equals(mentor.getJob().getId())) {
+			modifiedFields.put("jobId",
+				new MentorChangeResponse.FieldChange<>(mentor.getJob().getId(), proposal.getJob().getId()));
+		}
+		if (!proposal.getIntroduction().equals(mentor.getIntroduction())) {
+			modifiedFields.put("introduction",
+				new MentorChangeResponse.FieldChange<>(mentor.getIntroduction(), proposal.getIntroduction()));
 		}
 
 		return new MentorChangeResponse.ChangeRequestData(
-			modification.getId(),
-			modification.getStatus().name(),
-			modification.getCreatedAt(),
+			proposal.getId(),
+			proposal.getStatus().name(),
+			proposal.getCreatedAt(),
 			modifiedFields
 		);
-	}
-
-	//멘토 엔티티와 수정 요청 DTO를 비교하여 변경 사항을 추출합니다.
-	private Map<String, Map<String, Object>> extractChanges(Mentor mentor,
-		MentorUpdateRequest.MentorUpdateRequestDto dto) {
-		Map<String, Map<String, Object>> changes = new HashMap<>();
-
-		// career 변경 확인
-		if (dto.career() != null && !dto.career().equals(mentor.getCareer())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getCareer());
-			fieldChange.put("after", dto.career());
-			changes.put("career", fieldChange);
-		}
-
-		// phone 변경 확인
-		if (dto.phone() != null && !dto.phone().equals(mentor.getPhone())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getPhone());
-			fieldChange.put("after", dto.phone());
-			changes.put("phone", fieldChange);
-		}
-
-		// currentCompany 변경 확인
-		if (dto.currentCompany() != null && !dto.currentCompany().equals(mentor.getCurrentCompany())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getCurrentCompany());
-			fieldChange.put("after", dto.currentCompany());
-			changes.put("currentCompany", fieldChange);
-		}
-
-		// jobId 변경 확인
-		if (dto.jobId() != null && !dto.jobId().equals(mentor.getJob().getId())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getJob().getId());
-			fieldChange.put("after", dto.jobId());
-			changes.put("jobId", fieldChange);
-		}
-
-		// email 변경 확인 - 이제 멘토 엔티티에서 직접 확인
-		if (dto.email() != null && !dto.email().equals(mentor.getEmail())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getEmail());
-			fieldChange.put("after", dto.email());
-			changes.put("email", fieldChange);
-		}
-
-		// introduction 변경 확인
-		if (dto.introduction() != null && !dto.introduction().equals(mentor.getIntroduction())) {
-			Map<String, Object> fieldChange = new HashMap<>();
-			fieldChange.put("before", mentor.getIntroduction());
-			fieldChange.put("after", dto.introduction());
-			changes.put("introduction", fieldChange);
-		}
-
-		return changes;
 	}
 
 	@Transactional

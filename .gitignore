@@ -38,6 +38,7 @@ out/
 
 .env
 
+dockerProjects
 
 ### Firebase ###
 firebase-adminsdk.json

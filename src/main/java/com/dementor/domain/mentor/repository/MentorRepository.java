@@ -1,6 +1,7 @@
 package com.dementor.domain.mentor.repository;
 
 import com.dementor.domain.mentor.entity.Mentor;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

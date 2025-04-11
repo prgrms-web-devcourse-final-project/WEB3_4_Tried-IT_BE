@@ -15,7 +15,6 @@ import com.dementor.domain.member.entity.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-
 @Getter
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {

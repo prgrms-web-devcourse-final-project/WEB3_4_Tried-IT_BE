@@ -9,8 +9,11 @@ import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.AdminModificationRepository;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
+
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,7 +37,8 @@ public class AdminModificationService {
 	}
 
 	public MentorEditUpdateRenewalResponse approveMentorUpdate(Long memberId) {
-		MentorEditProposal mentorEditProposal = mentorEditProposalRepository.findOneRequestByMemberId(memberId);
+		MentorEditProposal mentorEditProposal = mentorEditProposalRepository.findOneRequestByMemberIdAndStatus(memberId,
+			MentorEditProposalStatus.PENDING);
 
 		Mentor mentor = mentorRepository.findByMemberId(memberId)
 			.orElseThrow(() -> new EntityNotFoundException("Mentor not found"));
@@ -42,52 +46,46 @@ public class AdminModificationService {
 		mentor.update(
 			mentorEditProposal.getCurrentCompany(),
 			mentorEditProposal.getCareer(),
-			// mentorEditProposal.getPhone,
-			// mentorEditProposal.getEmail,
-			mentorEditProposal.getIntroduction()
-			);
+			mentorEditProposal.getJob(),
+			mentorEditProposal.getIntroduction(),
+			ModificationStatus.APPROVED
+		);
 
-		mentor.updateModificationStatus(ModificationStatus.APPROVED);
 		mentorEditProposal.updateStatus(MentorEditProposalStatus.APPROVED);
 		mentorEditProposalRepository.save(mentorEditProposal);
 		mentorRepository.save(mentor);
 
 		// MentorEditUpdateRenewalResponse 객체 생성
 		MentorEditUpdateRenewalResponse response = new MentorEditUpdateRenewalResponse(
-				mentor.getId(),
-				memberId,
-				mentorEditProposal.getStatus(),
-				now().toString()
+			mentor.getId(),
+			memberId,
+			mentorEditProposal.getStatus(),
+			now().toString()
 		);
 
 		return response;
 	}
 
+	@Transactional
 	public MentorEditUpdateRenewalResponse rejectMentorUpdate(Long memberId) {
-		MentorEditProposal mentorEditProposal = mentorEditProposalRepository.findOneRequestByMemberId(memberId);
+		MentorEditProposal mentorEditProposal = mentorEditProposalRepository.findOneRequestByMemberIdAndStatus(memberId,
+			MentorEditProposalStatus.PENDING);
 
 		Mentor mentor = mentorRepository.findByMemberId(memberId)
-				.orElseThrow(() -> new EntityNotFoundException("Mentor not found"));
-
-		mentor.update(
-				mentorEditProposal.getCurrentCompany(),
-				mentorEditProposal.getCareer(),
-				// mentorEditProposal.getPhone,
-				// mentorEditProposal.getEmail,
-				mentorEditProposal.getIntroduction()
-		);
+			.orElseThrow(() -> new EntityNotFoundException("Mentor not found"));
 
 		mentor.updateModificationStatus(ModificationStatus.REJECTED);
+
 		mentorEditProposal.updateStatus(MentorEditProposalStatus.REJECTED);
 		mentorEditProposalRepository.save(mentorEditProposal);
 		mentorRepository.save(mentor);
 
 		// MentorEditUpdateRenewalResponse 객체 생성
 		MentorEditUpdateRenewalResponse response = new MentorEditUpdateRenewalResponse(
-				mentor.getId(),
-				memberId,
-				mentorEditProposal.getStatus(),
-				now().toString()
+			mentor.getId(),
+			memberId,
+			mentorEditProposal.getStatus(),
+			now().toString()
 		);
 
 		return response;

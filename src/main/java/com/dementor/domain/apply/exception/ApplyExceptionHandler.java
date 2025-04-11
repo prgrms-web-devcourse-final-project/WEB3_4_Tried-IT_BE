@@ -12,15 +12,15 @@ import com.dementor.global.ApiResponse;
 @Order(Ordered.HIGHEST_PRECEDENCE)  // GlobalExceptionHandler보다 먼저 처리되도록 설정
 public class ApplyExceptionHandler {
 
-    @ExceptionHandler(ApplyException.class)
-    public ResponseEntity<ApiResponse<?>> handleApplyException(ApplyException e) {
-        ApplyErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity
-                .status(errorCode.getStatus())
-                .body(ApiResponse.of(
-                false,
-                errorCode.getStatus(),
-                errorCode.getMessage()
-        ));
-    }
+	@ExceptionHandler(ApplyException.class)
+	public ResponseEntity<ApiResponse<?>> handleApplyException(ApplyException e) {
+		ApplyErrorCode errorCode = e.getErrorCode();
+		return ResponseEntity
+			.status(errorCode.getStatus())
+			.body(ApiResponse.of(
+				false,
+				errorCode.getStatus(),
+				errorCode.getMessage()
+			));
+	}
 }

@@ -1,12 +1,13 @@
 package com.dementor.global.security;
 
-import com.dementor.global.config.MultipartJackson2HttpMessageConverter;
+import java.util.List;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
+import com.dementor.global.config.MultipartJackson2HttpMessageConverter;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -27,7 +28,8 @@ public class WebConfig implements WebMvcConfigurer {
 				"https://admin-local.dementor.site:5174"
 			)
 			.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-			.allowedHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers")
+			.allowedHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin",
+				"Access-Control-Request-Method", "Access-Control-Request-Headers")
 			.exposedHeaders("Authorization")
 			.allowCredentials(true)
 			.maxAge(3600);

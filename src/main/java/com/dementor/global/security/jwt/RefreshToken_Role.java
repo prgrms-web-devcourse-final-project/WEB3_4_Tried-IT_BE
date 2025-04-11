@@ -9,8 +9,11 @@ public enum RefreshToken_Role {
 	RefreshToken_Role(String role) {
 		this.role = role;
 	}
+
 	public static RefreshToken_Role fromRole(String role) {
-		if (role.equals("ROLE_ADMIN")) {return RefreshToken_Role.ROLE_ADMIN;}
+		if (role.equals("ROLE_ADMIN")) {
+			return RefreshToken_Role.ROLE_ADMIN;
+		}
 		return RefreshToken_Role.ROLE_MEMBER;
 	}
 }

@@ -39,7 +39,7 @@ public class MemberService {
 		String storedCode = redisTemplate.opsForValue().get("email:" + signupRequest.getEmail());
 
 		//code 검증
-		if(storedCode != null && storedCode.equals(signupRequest.getVerifyCode())) {
+		if (storedCode != null && storedCode.equals(signupRequest.getVerifyCode())) {
 			Member member = Member.builder()
 				.email(signupRequest.getEmail())
 				.password(passwordEncoder.encode(signupRequest.getPassword()))
@@ -49,7 +49,7 @@ public class MemberService {
 				.build();
 
 			memberRepository.save(member);
-		}else{
+		} else {
 			throw new MemberException(MemberErrorCode.INVALID_VERIFYCODE);
 		}
 	}
@@ -58,7 +58,6 @@ public class MemberService {
 		memberRepository.findByEmail(email).ifPresent(member -> {
 			throw new MemberException(MemberErrorCode.DUPLICATE_EMAIL);
 		});
-
 
 		return true;
 	}

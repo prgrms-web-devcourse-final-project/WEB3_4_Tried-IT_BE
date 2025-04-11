@@ -73,7 +73,7 @@ public class ApplyControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		 //테스트용 멘티 생성
+		//테스트용 멘티 생성
 		testMentee = Member.builder()
 			.nickname("testMentee")
 			.password("password")
@@ -138,7 +138,6 @@ public class ApplyControllerTest {
 		request.setInquiry("멘티의 테스트 문의입니다");
 		request.setSchedule(LocalDateTime.now().plusDays(1));
 
-
 		ResultActions resultActions = mvc
 			.perform(
 				post("/api/apply")
@@ -187,7 +186,7 @@ public class ApplyControllerTest {
 			.build();
 		mentorRepository.save(mentor);
 
-		 //다른 멘토의 클래스 생성
+		//다른 멘토의 클래스 생성
 		MentoringClass otherMentoringClass = MentoringClass.builder()
 			.title("다른 멘토의 클래스")
 			.stack("Java, Spring")
@@ -198,12 +197,11 @@ public class ApplyControllerTest {
 		otherMentoringClass = mentoringClassRepository.save(otherMentoringClass);
 		Long otherClassId = otherMentoringClass.getId();
 
-		 //신청 요청 생성 (다른 멘토의 클래스에 신청)
+		//신청 요청 생성 (다른 멘토의 클래스에 신청)
 		ApplyCreateRequest request = new ApplyCreateRequest();
 		request.setClassId(otherClassId);
 		request.setInquiry("멘토의 테스트 문의입니다");
 		request.setSchedule(LocalDateTime.now().plusDays(1));
-
 
 		ResultActions resultActions = mvc
 			.perform(
@@ -272,7 +270,6 @@ public class ApplyControllerTest {
 			)
 			.andDo(print());
 
-
 		resultActions
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.isSuccess").value(true))
@@ -295,7 +292,7 @@ public class ApplyControllerTest {
 			applyRepository.save(apply);
 		}
 
-		 //1페이지 조회 테스트
+		//1페이지 조회 테스트
 		ResultActions resultActions = mvc
 			.perform(
 				get("/api/apply")
@@ -320,7 +317,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
 
-		 //2페이지
+		//2페이지
 		ResultActions page2Results = mvc
 			.perform(
 				get("/api/apply")
@@ -360,7 +357,7 @@ public class ApplyControllerTest {
 			applyRepository.save(apply);
 		}
 
-		 //1페이지
+		//1페이지
 		ResultActions resultActions = mvc
 			.perform(
 				get("/api/apply")
@@ -385,7 +382,7 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
 
-		 //2페이지
+		//2페이지
 		ResultActions page2Results = mvc
 			.perform(
 				get("/api/apply")
@@ -408,7 +405,6 @@ public class ApplyControllerTest {
 			.andExpect(jsonPath("$.data.pagination.total_elements").value(15))
 			.andExpect(jsonPath("$.data.pagination.total_pages").value(2));
 	}
-
 
 }
 

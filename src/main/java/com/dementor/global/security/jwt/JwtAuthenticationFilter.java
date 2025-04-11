@@ -62,13 +62,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 							// 리프레시 토큰이 만료된 경우 로그아웃 처리
 							String userIdentifier = jwtTokenProvider.getUserIdentifierFromRefreshToken(refreshToken);
 							tokenService.logout(userIdentifier); // Redis에서 토큰 삭제
-							
+
 							response.addHeader(HttpHeaders.SET_COOKIE, cookieUtil.deleteAccessTokenCookie().toString());
-							response.addHeader(HttpHeaders.SET_COOKIE, cookieUtil.deleteRefreshTokenCookie().toString());
+							response.addHeader(HttpHeaders.SET_COOKIE,
+								cookieUtil.deleteRefreshTokenCookie().toString());
 							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-							response.getWriter().write("{\"error\":\"REFRESH_TOKEN_EXPIRED\",\"message\":\"리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.\"}");
+							response.getWriter()
+								.write(
+									"{\"error\":\"REFRESH_TOKEN_EXPIRED\",\"message\":\"리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.\"}");
 							return;
-						}else {
+						} else {
 							TokenDto newTokens = tokenService.refreshAccessToken(refreshToken);
 							Authentication auth = jwtTokenProvider.getAuthentication(newTokens.getAccessToken());
 							SecurityContextHolder.getContext().setAuthentication(auth);
@@ -84,18 +87,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 						// 토큰 재발급 실패 시 로그아웃 처리
 						String userIdentifier = jwtTokenProvider.getUserIdentifierFromRefreshToken(refreshToken);
 						tokenService.logout(userIdentifier); // Redis에서 토큰 삭제
-						
+
 						response.addHeader(HttpHeaders.SET_COOKIE, cookieUtil.deleteAccessTokenCookie().toString());
 						response.addHeader(HttpHeaders.SET_COOKIE, cookieUtil.deleteRefreshTokenCookie().toString());
 						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-						response.getWriter().write("{\"error\":\"TOKEN_REFRESH_FAILED\",\"message\":\"토큰 갱신에 실패했습니다. 다시 로그인해주세요.\"}");
+						response.getWriter()
+							.write("{\"error\":\"TOKEN_REFRESH_FAILED\",\"message\":\"토큰 갱신에 실패했습니다. 다시 로그인해주세요.\"}");
 						return;
 					}
 				} else {
 					// 리프레시 토큰이 없는 경우 로그아웃 처리
 					response.addHeader(HttpHeaders.SET_COOKIE, cookieUtil.deleteAccessTokenCookie().toString());
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.getWriter().write("{\"error\":\"NO_REFRESH_TOKEN\",\"message\":\"리프레시 토큰이 없습니다. 다시 로그인해주세요.\"}");
+					response.getWriter()
+						.write("{\"error\":\"NO_REFRESH_TOKEN\",\"message\":\"리프레시 토큰이 없습니다. 다시 로그인해주세요.\"}");
 					return;
 				}
 			}

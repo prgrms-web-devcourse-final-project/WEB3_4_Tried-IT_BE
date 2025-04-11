@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MentorApplyStatusRequest {
-    @Schema(description = "신청 상태", example = "APPROVED or REJECTED")
-    private ApplyStatus status; // "APPROVED" 또는 "REJECTED"
+	@Schema(description = "신청 상태", example = "APPROVED or REJECTED")
+	private ApplyStatus status; // "APPROVED" 또는 "REJECTED"
 } 

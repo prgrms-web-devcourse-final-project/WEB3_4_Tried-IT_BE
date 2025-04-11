@@ -1,5 +1,10 @@
 package com.dementor.global.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.dementor.domain.apply.exception.ApplyErrorCode;
 import com.dementor.domain.apply.exception.ApplyException;
@@ -11,11 +16,6 @@ import com.dementor.domain.mentoringclass.exception.MentoringClassException;
 import com.dementor.domain.mentoringclass.exception.MentoringClassExceptionCode;
 import com.dementor.domain.postattachment.exception.PostAttachmentException;
 import com.dementor.global.ApiResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,8 +45,8 @@ public class GlobalExceptionHandler {
 	public ApiResponse<?> handleMentorException(MentorException e) {
 		MentorErrorCode errorCode = e.getErrorCode();
 		return ApiResponse.of(false,
-				errorCode.getStatus(),
-				errorCode.getMessage());
+			errorCode.getStatus(),
+			errorCode.getMessage());
 	}
 
 	// MaxUploadSizeExceededException 처리
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
 	public ApiResponse<?> handleMentoringClassException(MentoringClassException e) {
 		MentoringClassExceptionCode errorCode = e.getErrorCode();
 		return ApiResponse.of(false,
-				errorCode.getStatus(),
-				errorCode.getMessage());
+			errorCode.getStatus(),
+			errorCode.getMessage());
 	}
 }

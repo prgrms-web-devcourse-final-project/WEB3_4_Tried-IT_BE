@@ -50,7 +50,7 @@ public class AdminAuthController {
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 
 			// 사용자 정보 가져오기
-			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			CustomUserDetails userDetails = (CustomUserDetails)authentication.getPrincipal();
 			Long adminId = userDetails.getId();
 			String username = userDetails.getUsername();
 
@@ -60,16 +60,16 @@ public class AdminAuthController {
 			// 쿠키에는 액세스 토큰, refresh 토큰
 			HttpHeaders headers = new HttpHeaders();
 			headers.add(HttpHeaders.SET_COOKIE, cookieUtil.createAccessTokenCookie(tokens.getAccessToken()).toString());
-			headers.add(HttpHeaders.SET_COOKIE, cookieUtil.createRefreshTokenCookie(tokens.getRefreshToken()).toString());
-
+			headers.add(HttpHeaders.SET_COOKIE,
+				cookieUtil.createRefreshTokenCookie(tokens.getRefreshToken()).toString());
 
 			return ResponseEntity.ok()
 				.headers(headers)
-				.body(ApiResponse.of(true,HttpStatus.OK, "로그인 성공"));
+				.body(ApiResponse.of(true, HttpStatus.OK, "로그인 성공"));
 
 		} catch (AuthenticationException e) {
 			return ResponseEntity.badRequest()
-				.body(ApiResponse.of(false,HttpStatus.BAD_REQUEST, "로그인 실패"));
+				.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "로그인 실패"));
 		}
 	}
 
@@ -89,7 +89,7 @@ public class AdminAuthController {
 
 		return ResponseEntity.ok()
 			.headers(headers)
-			.body(ApiResponse.of(true,HttpStatus.OK, "로그아웃 성공"));
+			.body(ApiResponse.of(true, HttpStatus.OK, "로그아웃 성공"));
 	}
 
 }
