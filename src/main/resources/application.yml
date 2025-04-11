@@ -48,11 +48,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
-#웹소켓
-server:
-  address: 0.0.0.0
-  port: 8080
-
 
 jwt:
   secret: ${JWT_SECRET_KEY}
@@ -85,6 +80,9 @@ firebase:
     url-expiry: 30   # 서명된 URL 만료 시간(일)
 
 server:
+#  외부허용 웹소켓
+  address: 0.0.0.0
+  port: 8080
   shutdown: graceful
   forward-headers-strategy: native
   servlet:

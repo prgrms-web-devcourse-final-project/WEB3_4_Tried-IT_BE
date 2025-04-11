@@ -1,8 +1,4 @@
 spring:
-  main:
-#    allow-bean-definition-overriding: true
-#  #      SecurityConfig 와 TestSecurityConfig 두 곳에서 동일한 이름의 빈 passwordEncoder를 정의, 충돌
-
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     username: sa
