@@ -40,7 +40,6 @@ public class PostAttachment extends BaseEntity {
 	@JoinColumn(name = "mentor_modification_id")
 	private MentorEditProposal mentorEditProposal;
 
-	// 예: 마크다운에서 ![alt](/images/abc123.png) 형태로 참조할 때 abc123이 uniqueIdentifier . UUID 형식 추천
 	@Column(unique = true)
 	private String uniqueIdentifier; // 마크다운 내 이미지 참조를 위한 고유 식별자
 
@@ -52,15 +51,5 @@ public class PostAttachment extends BaseEntity {
 			return this.mentorEditProposal.getMember();
 		}
 		return null;
-	}
-
-	// 멘토 지원서와 연결
-	public void connectToMentorApplyProposal(MentorApplyProposal application) {
-		this.mentorApplyProposal = application;
-	}
-
-	// 멘토 정보 수정 요청과 연결
-	public void connectToMentorModification(MentorEditProposal modification) {
-		this.mentorEditProposal = modification;
 	}
 }

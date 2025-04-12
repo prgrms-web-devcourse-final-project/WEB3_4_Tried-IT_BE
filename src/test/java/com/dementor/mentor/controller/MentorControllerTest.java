@@ -141,8 +141,7 @@ public class MentorControllerTest {
 				"testmember@test.com",
 				5,
 				"테스트 회사",
-				"테스트 자기소개",
-				null
+				"테스트 자기소개"
 			);
 
 		// Multipart 본문 중 하나로 보낼 JSON
@@ -183,8 +182,7 @@ public class MentorControllerTest {
 			testJobId,                   // jobId
 			8,                    // career
 			"업데이트 회사",       // currentCompany
-			"업데이트된 자기소개", // introduction
-			null                  // attachmentId
+			"업데이트된 자기소개"  // introduction
 		);
 
 		// JSON 데이터를 multipart로 보내기 위한 MockMultipartFile

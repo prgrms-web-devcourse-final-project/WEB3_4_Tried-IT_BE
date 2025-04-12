@@ -1,10 +1,15 @@
 package com.dementor.domain.postattachment.controller;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-
+import com.dementor.domain.postattachment.dto.response.FileResponse;
+import com.dementor.domain.postattachment.dto.response.FileResponse.FileInfoDto;
+import com.dementor.domain.postattachment.exception.PostAttachmentException;
+import com.dementor.domain.postattachment.service.PostAttachmentService;
+import com.dementor.global.ApiResponse;
+import com.dementor.global.security.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,25 +17,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.dementor.domain.postattachment.dto.response.FileResponse;
-import com.dementor.domain.postattachment.dto.response.FileResponse.FileInfoDto;
-import com.dementor.domain.postattachment.exception.PostAttachmentException;
-import com.dementor.domain.postattachment.service.PostAttachmentService;
-import com.dementor.global.ApiResponse;
-import com.dementor.global.security.CustomUserDetails;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -41,48 +33,35 @@ public class PostAttachmentController {
 
 	private final PostAttachmentService postAttachmentService;
 
-	//파일 업로드 API
-	@PostMapping(value = "/upload")
+	@PostMapping(value = "/upload-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('MENTEE') or hasRole('MENTOR')")
-	@Operation(summary = "마크다운 이미지 업로드", description = "마크다운에 포함된 이미지를 업로드합니다.")
-	public ResponseEntity<ApiResponse<?>> uploadMarkdownContent(
-		@RequestParam(value = "introductionMarkdown", required = false) String introduction,
-		@AuthenticationPrincipal CustomUserDetails userDetails
+	@Operation(summary = "마크다운용 이미지 파일 업로드", description = "마크다운에서 사용할 이미지 파일을 직접 업로드합니다. (Form-data 방식)")
+	public ResponseEntity<ApiResponse<?>> uploadMarkdownImages(
+			@RequestParam(value = "images", required = true) List<MultipartFile> images
 	) {
 		try {
-			// 마크다운 텍스트는 필수
-			if (introduction == null || introduction.isEmpty()) {
+			if (images == null || images.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "마크다운 텍스트는 필수입니다."));
+						.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "이미지 파일은 필수입니다."));
 			}
 
-			// 사용자 정보 확인
-			if (userDetails == null || userDetails.getId() == null) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(ApiResponse.of(false, HttpStatus.UNAUTHORIZED, "인증된 사용자만 이용할 수 있습니다."));
-			}
-
-			// 이미지 업로드 처리
-			List<FileInfoDto> allUploadedFiles = postAttachmentService.uploadMarkdownContent(introduction);
+			// 이미지 업로드 처리를 위한 서비스 메소드 호출
+			List<FileInfoDto> uploadedFiles = postAttachmentService.uploadMarkdownImages(images);
 
 			FileResponse.FileUploadResponseDto responseDto = FileResponse.FileUploadResponseDto.builder()
-				.status(HttpStatus.CREATED.value())
-				.message("이미지 업로드에 성공했습니다.")
-				.data(allUploadedFiles)
-				.build();
+					.status(HttpStatus.CREATED.value())
+					.message("이미지 업로드에 성공했습니다.")
+					.data(uploadedFiles)
+					.build();
 
 			return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.of(true, HttpStatus.CREATED, "이미지 업로드에 성공했습니다.", responseDto));
-
-		} catch (IllegalStateException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, e.getMessage()));
+					.body(ApiResponse.of(true, HttpStatus.CREATED, "이미지 업로드에 성공했습니다.", responseDto));
 		} catch (PostAttachmentException e) {
 			return ResponseEntity.status(e.getErrorCode().getStatus().value())
-				.body(ApiResponse.of(false, e.getErrorCode().getStatus(), e.getMessage()));
+					.body(ApiResponse.of(false, e.getErrorCode().getStatus(), e.getMessage()));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(ApiResponse.of(false, HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다: " + e.getMessage()));
+					.body(ApiResponse.of(false, HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다: " + e.getMessage()));
 		}
 	}
 
@@ -162,8 +141,7 @@ public class PostAttachmentController {
 	public ResponseEntity<?> downloadMarkdownImage(
 		@PathVariable String uniqueIdentifier,
 		@RequestParam(required = false) Integer width,
-		@RequestParam(required = false) Integer height,
-		@AuthenticationPrincipal CustomUserDetails userDetails
+		@RequestParam(required = false) Integer height
 	) {
 		try {
 			Map<String, Object> imageInfo = postAttachmentService.downloadMarkdownImage(uniqueIdentifier, width,
@@ -171,27 +149,11 @@ public class PostAttachmentController {
 
 			Resource resource = (Resource)imageInfo.get("resource");
 			String contentType = (String)imageInfo.get("contentType");
-			String fileName = (String)imageInfo.get("fileName");
-
-			// 내부 및 외부 이미지를 동일하게 처리
-			String encodedFileName = "";
-			if (fileName != null && !fileName.isEmpty()) {
-				encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
-					.replaceAll("\\+", "%20");
-			}
 
 			return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))
-				.header(HttpHeaders.CONTENT_DISPOSITION, "inline" +
-					(encodedFileName.isEmpty() ? "" : "; filename*=UTF-8''" + encodedFileName))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline")
 				.body(resource);
-
-		} catch (IllegalStateException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, e.getMessage()));
-		} catch (PostAttachmentException e) {
-			return ResponseEntity.status(e.getErrorCode().getStatus().value())
-				.body(ApiResponse.of(false, e.getErrorCode().getStatus(), e.getMessage()));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(ApiResponse.of(false, HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다: " + e.getMessage()));

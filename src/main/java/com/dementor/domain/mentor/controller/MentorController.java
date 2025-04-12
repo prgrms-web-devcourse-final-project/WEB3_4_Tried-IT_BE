@@ -8,22 +8,19 @@ import com.dementor.domain.mentor.dto.response.*;
 import com.dementor.domain.mentor.exception.MentorException;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentor.service.MentorService;
-import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentResponse;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
 import com.dementor.domain.mentoreditproposal.dto.MentorEditProposalRequest;
 import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalResponse;
-import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoringclass.service.MentoringClassService;
 import com.dementor.domain.postattachment.exception.PostAttachmentException;
 import com.dementor.domain.postattachment.service.PostAttachmentService;
 import com.dementor.global.ApiResponse;
 import com.dementor.global.security.CustomUserDetails;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -68,15 +65,10 @@ public class MentorController {
 					.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "파일 또는 마크다운 텍스트 중 하나는 필수입니다."));
 			}
 
-			MentorApplyProposal mentorApplyProposal = mentorService.applyMentor(requestDto);
-
-			// 일반 파일 업로드
-			if (files != null && !files.isEmpty()) {
-				postAttachmentService.uploadFilesApply(files, mentorApplyProposal);
-			}
+			ApplymentResponse response = mentorService.applyMentor(requestDto, files);
 
 			return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.of(true, HttpStatus.CREATED, "멘토 지원에 성공했습니다."));
+				.body(ApiResponse.of(true, HttpStatus.CREATED, "멘토 지원에 성공했습니다.", response));
 		} catch (MentorException e) {
 			return ResponseEntity.status(e.getErrorCode().getStatus())
 				.body(ApiResponse.of(false, e.getErrorCode().getStatus(), e.getMessage()));
@@ -118,14 +110,7 @@ public class MentorController {
 					.body(ApiResponse.of(false, HttpStatus.BAD_REQUEST, "파일 또는 마크다운 텍스트 중 하나는 필수입니다."));
 			}
 
-			MentorEditProposal mentorEditProposal = mentorService.updateMentor(memberId, requestDto);
-
-			// 일반 파일 업로드
-			if (files != null && !files.isEmpty()) {
-				postAttachmentService.uploadFilesEdit(files, mentorEditProposal);
-			}
-
-			MentorEditUpdateRenewalResponse response = MentorEditUpdateRenewalResponse.from(mentorEditProposal);
+			MentorEditUpdateRenewalResponse response = mentorService.updateMentor(memberId, requestDto, files);
 
 			return ResponseEntity.ok()
 				.body(ApiResponse.of(true, HttpStatus.OK, "멘토 정보 수정 요청에 성공했습니다.", response));

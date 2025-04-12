@@ -2,8 +2,6 @@ package com.dementor.domain.mentor.dto.request;
 
 import jakarta.validation.constraints.*;
 
-import java.util.List;
-
 public class MentorApplyProposalRequest {
 	public record MentorApplyProposalRequestDto(
 		@NotNull(message = "회원 ID는 필수 입력 항목입니다.")
@@ -35,9 +33,7 @@ public class MentorApplyProposalRequest {
 
 		@NotBlank(message = "소개글은 필수 입력 항목입니다.")
 		@Size(max = 500, message = "자기소개는 500자 이내로 입력해주세요.")
-		String introduction,
-
-		List<Long> attachmentId
+		String introduction
 	) {
 	}
 }

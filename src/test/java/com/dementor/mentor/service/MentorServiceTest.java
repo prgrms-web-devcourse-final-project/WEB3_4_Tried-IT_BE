@@ -14,19 +14,24 @@ import com.dementor.domain.mentor.entity.ModificationStatus;
 import com.dementor.domain.mentor.exception.MentorException;
 import com.dementor.domain.mentor.repository.MentorRepository;
 import com.dementor.domain.mentor.service.MentorService;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentResponse;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
 import com.dementor.domain.mentoreditproposal.dto.MentorEditProposalRequest;
+import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalResponse;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
-
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -122,16 +127,24 @@ public class MentorServiceTest {
 				"test@example.com",
 				5,
 				"테스트 회사",
-				"테스트 자기소개",
-				null
+				"테스트 자기소개"
 			);
 
+		// mock 파일 목록 (빈 리스트로 제공)
+		List<MultipartFile> files = Collections.emptyList();
+
 		// When
-		mentorService.applyMentor(requestDto);
+		ApplymentResponse response = mentorService.applyMentor(requestDto, files);
 
 		// Then
+		assertNotNull(response, "응답이 null이 아니어야 합니다.");
+		assertEquals(testMember.getId(), response.memberId());
+		assertEquals(testMember.getName(), response.name());
+		assertEquals("PENDING", response.status());
+
+		// 실제 저장된 엔티티 확인
 		MentorApplyProposal savedApplication = mentorApplyProposalRepository.findByMemberId(testMember.getId())
-			.orElse(null);
+				.orElse(null);
 		assertNotNull(savedApplication, "멘토 지원 정보가 저장되지 않았습니다.");
 		assertEquals("테스트 자기소개", savedApplication.getIntroduction());
 		assertEquals(MentorApplyProposalStatus.PENDING, savedApplication.getStatus());
@@ -169,13 +182,14 @@ public class MentorServiceTest {
 				"nonexistent@example.com",
 				5,
 				"테스트 회사",
-				"테스트 자기소개",
-				null
+				"테스트 자기소개"
 			);
+
+		List<MultipartFile> files = Collections.emptyList();
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
-			mentorService.applyMentor(requestDto);
+			mentorService.applyMentor(requestDto, files);
 		});
 
 		assertTrue(exception.getMessage().contains("회원을 찾을 수 없습니다"));
@@ -195,13 +209,14 @@ public class MentorServiceTest {
 				"mentor@example.com",
 				5,
 				"테스트 회사",
-				"테스트 자기소개",
-				null
+				"테스트 자기소개"
 			);
+
+		List<MultipartFile> files = Collections.emptyList();
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
-			mentorService.applyMentor(requestDto);
+			mentorService.applyMentor(requestDto, files);
 		});
 
 		assertTrue(exception.getMessage().contains("이미 멘토로 등록된 사용자입니다"));
@@ -215,17 +230,22 @@ public class MentorServiceTest {
 	void createMentorUpdateRequestSuccess() {
 		// Given
 		MentorEditProposalRequest requestDto = new MentorEditProposalRequest(
-			testJob.getId(),                // jobId
+			testJob.getId(),        // jobId
 			8,                      // career
 			"업데이트 회사",         // currentCompany
-			"업데이트된 자기소개",    // introduction
-			null                   // attachmentId
+			"업데이트된 자기소개"    // introduction
 		);
 
+		List<MultipartFile> files = Collections.emptyList();
+
 		// When
-		mentorService.updateMentor(testMentor.getId(), requestDto);
+		MentorEditUpdateRenewalResponse response = mentorService.updateMentor(testMentor.getId(), requestDto, files);
 
 		// Then
+		assertNotNull(response, "응답이 null이 아니어야 합니다.");
+		assertEquals(testMentor.getMember().getId(), response.memberId());
+		assertEquals(MentorEditProposalStatus.PENDING, response.status());
+
 		Mentor updatedMentor = mentorRepository.findById(testMentor.getId()).orElse(null);
 		assertNotNull(updatedMentor, "멘토 정보가 조회되지 않습니다.");
 		assertEquals(ModificationStatus.PENDING, updatedMentor.getModificationStatus());
@@ -246,8 +266,6 @@ public class MentorServiceTest {
 		mentor.update(
 			"업데이트 회사",
 			8,
-			// "01098765432",
-			// "update@email.com",
 			job,
 			"업데이트된 자기소개",
 			ModificationStatus.APPROVED
@@ -269,16 +287,17 @@ public class MentorServiceTest {
 		// Given
 		final Long nonExistingMentorId = 9999L;
 		MentorEditProposalRequest requestDto = new MentorEditProposalRequest(
-			1L,                     // jobId
-			8,                      // career
+			1L,              // jobId
+			8,                     // career
 			"업데이트 회사",         // currentCompany
-			"업데이트된 자기소개",   // introduction
-			null                    // attachmentId
+			"업데이트된 자기소개"     // introduction
 		);
+
+		List<MultipartFile> files = Collections.emptyList(); // 빈 파일 리스트 추가
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
-			mentorService.updateMentor(nonExistingMentorId, requestDto);
+			mentorService.updateMentor(nonExistingMentorId, requestDto, files);
 		});
 
 		assertTrue(exception.getMessage().contains("멘토를 찾을 수 없습니다"));
@@ -316,13 +335,14 @@ public class MentorServiceTest {
 			1L,                     // jobId
 			8,                      // career
 			"업데이트 회사",         // currentCompany
-			"업데이트된 자기소개",   // introduction
-			null                    // attachmentId
+			"업데이트된 자기소개"    // introduction
 		);
+
+		List<MultipartFile> files = Collections.emptyList(); // 빈 파일 리스트 추가
 
 		// When & Then
 		Exception exception = assertThrows(MentorException.class, () -> {
-			mentorService.updateMentor(pendingMentorId, requestDto);
+			mentorService.updateMentor(pendingMentorId, requestDto, files);
 		});
 
 		assertTrue(exception.getMessage().contains("이미 정보 수정 요청 중입니다"));

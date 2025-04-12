@@ -57,7 +57,7 @@ public class Mentor {
 	@Email
 	private String email;
 
-	@Column(nullable = false)
+	@Column(length = 500, nullable = false)
 	private String introduction;
 
 	@Enumerated(EnumType.STRING)
