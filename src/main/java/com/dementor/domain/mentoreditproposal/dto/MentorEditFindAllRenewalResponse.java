@@ -11,9 +11,12 @@ public record MentorEditFindAllRenewalResponse(
 	String createdAt,
 	Integer career,
 	String currentCompany,
-	String introduction
+	String introduction,
+	String jobName
 ) {
-	public static MentorEditFindAllRenewalResponse from(MentorEditProposal mentorEditProposal) {
+	public static MentorEditFindAllRenewalResponse from(
+			MentorEditProposal mentorEditProposal
+	) {
 		return new MentorEditFindAllRenewalResponse(
 			mentorEditProposal.getId(),
 			mentorEditProposal.getMember().getId(),
@@ -22,7 +25,8 @@ public record MentorEditFindAllRenewalResponse(
 			mentorEditProposal.getCreatedAt().toString(),
 			mentorEditProposal.getCareer(),
 			mentorEditProposal.getCurrentCompany(),
-			mentorEditProposal.getIntroduction()
+			mentorEditProposal.getIntroduction(),
+			mentorEditProposal.getJob().getName()
 		);
 	}
 }

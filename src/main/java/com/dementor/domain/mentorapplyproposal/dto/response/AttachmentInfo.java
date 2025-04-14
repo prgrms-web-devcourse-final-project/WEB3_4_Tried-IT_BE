@@ -9,9 +9,9 @@ public record AttachmentInfo(
 ) {
 	public static AttachmentInfo from(PostAttachment attachment) {
 		return new AttachmentInfo(
-			attachment.getId(),
-			attachment.getFilename(),
-			attachment.getStoreFilePath()
+				attachment.getId(),
+				attachment.getFilename(),
+				"/api/files/" + attachment.getId() + "/download"
 		);
 	}
 }

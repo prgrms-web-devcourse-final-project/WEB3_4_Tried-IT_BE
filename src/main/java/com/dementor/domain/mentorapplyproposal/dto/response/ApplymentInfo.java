@@ -1,6 +1,9 @@
 package com.dementor.domain.mentorapplyproposal.dto.response;
 
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
+import com.dementor.domain.postattachment.entity.PostAttachment;
+
+import java.util.List;
 
 public record ApplymentInfo(
 	Long applymentId,
@@ -14,13 +17,12 @@ public record ApplymentInfo(
 	String introduction,
 	String status,
 	String createdAt,
-	String modifiedAt
-	//        List<AttachmentInfo> attachments
+	String modifiedAt,
+	List<AttachmentInfo> attachments
 ) {
 	public static ApplymentInfo from(
-		MentorApplyProposal applyment
-		//            Job job
-		//            List<PostAttachment> attachments
+		MentorApplyProposal applyment,
+		List<PostAttachment> attachments
 	) {
 		return new ApplymentInfo(
 			applyment.getId(),
@@ -34,10 +36,10 @@ public record ApplymentInfo(
 			applyment.getIntroduction(),
 			applyment.getStatus().name(),
 			applyment.getCreatedAt().toString(),
-			applyment.getModifiedAt() != null ? applyment.getModifiedAt().toString() : null
-			//                attachments.stream()
-			//                        .map(AttachmentInfo::from)
-			//                        .toList()
+			applyment.getModifiedAt() != null ? applyment.getModifiedAt().toString() : null,
+			attachments.stream()
+					.map(AttachmentInfo::from)
+					.toList()
 		);
 	}
 }

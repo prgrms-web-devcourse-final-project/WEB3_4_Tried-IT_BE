@@ -1,5 +1,7 @@
 package com.dementor.domain.mentor.dto.response;
 
+import com.dementor.domain.postattachment.entity.PostAttachment;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +16,11 @@ public class MentorChangeResponse {
 
 	// 수정 요청 데이터 개별 항목 DTO
 	public record ChangeRequestData(
-		Long requestId,
+		Long proposalId,
 		String status,
-		LocalDateTime requestDate,
-		Map<String, FieldChange<?>> modifiedFields
+		LocalDateTime createdAt,
+		Map<String, FieldChange<?>> modifiedFields,
+		List<AttachmentInfo> attachments
 	) {
 	}
 
@@ -27,9 +30,6 @@ public class MentorChangeResponse {
 		Integer size,
 		Long totalElements
 	) {
-		public Long getTotalPages() {
-			return (totalElements + size - 1) / size;
-		}
 	}
 
 	// 응답 데이터 DTO
@@ -37,5 +37,15 @@ public class MentorChangeResponse {
 		List<ChangeRequestData> modificationRequests,
 		Pagination pagination
 	) {
+	}
+
+	public record AttachmentInfo(Long attachmentId, String fileName, String fileUrl) {
+		public static AttachmentInfo from(PostAttachment attachment) {
+			return new AttachmentInfo(
+					attachment.getId(),
+					attachment.getFilename(),
+					"/api/files/" + attachment.getId() + "/download"
+			);
+		}
 	}
 }

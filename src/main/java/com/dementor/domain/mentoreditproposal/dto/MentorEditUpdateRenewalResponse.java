@@ -4,18 +4,21 @@ import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 
 public record MentorEditUpdateRenewalResponse(
-
 	Long id,
 	Long memberId,
 	MentorEditProposalStatus status,
-	String modifiedAt
+	String modifiedAt,
+	String jobName
 ) {
-	public static MentorEditUpdateRenewalResponse from(MentorEditProposal mentorEditProposal) {
+	public static MentorEditUpdateRenewalResponse from(
+			MentorEditProposal mentorEditProposal
+	) {
 		return new MentorEditUpdateRenewalResponse(
 			mentorEditProposal.getId(),
 			mentorEditProposal.getMember().getId(),
 			mentorEditProposal.getStatus(),
-			mentorEditProposal.getModifiedAt().toString()
+			mentorEditProposal.getModifiedAt().toString(),
+			mentorEditProposal.getJob().getName()
 		);
 	}
 }

@@ -1,14 +1,5 @@
 package com.dementor.domain.mentorapplyproposal.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import com.dementor.domain.mentorapplyproposal.dto.request.ApplymentRejectRequest;
-import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentApprovalResponse;
-import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentDetailResponse;
-import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentRejectResponse;
-import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentResponse;
 import com.dementor.domain.job.entity.Job;
 import com.dementor.domain.job.repository.JobRepository;
 import com.dementor.domain.member.entity.Member;
@@ -16,12 +7,23 @@ import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.domain.mentor.repository.MentorRepository;
+import com.dementor.domain.mentorapplyproposal.dto.request.ApplymentRejectRequest;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentApprovalResponse;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentDetailResponse;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentRejectResponse;
+import com.dementor.domain.mentorapplyproposal.dto.response.ApplymentResponse;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposal;
 import com.dementor.domain.mentorapplyproposal.entity.MentorApplyProposalStatus;
 import com.dementor.domain.mentorapplyproposal.repository.MentorApplyProposalRepository;
-
+import com.dementor.domain.postattachment.entity.PostAttachment;
+import com.dementor.domain.postattachment.repository.PostAttachmentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +32,11 @@ public class AdminMentorApplymentService {
 	private final MentorRepository mentorRepository;
 	private final MemberRepository memberRepository;
 	private final MentorApplyProposalRepository mentorApplyProposalRepository;
+	private final PostAttachmentRepository postAttachmentRepository;
 
 	public Page<ApplymentResponse> findAllApplyment(Pageable pageable) {
 		return mentorApplyProposalRepository.findAll(pageable)
-			.map(application -> ApplymentResponse.from(application, application.getJob()));
+			.map(ApplymentResponse::from);
 	}
 
 	public ApplymentDetailResponse findOneApplyment(Long memberId) {
@@ -42,13 +45,9 @@ public class AdminMentorApplymentService {
 			.orElseThrow(() -> new EntityNotFoundException("지원서를 찾을 수 없습니다."));
 
 		// 첨부파일 목록 조회
-		//        List<PostAttachment> attachments = attachmentRepository.findByApplymentId(memberId);
+		List<PostAttachment> attachments = postAttachmentRepository.findByMentorApplyProposalId(applyment.getId());
 
-		return ApplymentDetailResponse.from(
-			applyment
-			//                job
-			//                attachments
-		);
+		return ApplymentDetailResponse.from(applyment, attachments);
 	}
 
 	public ApplymentApprovalResponse approveApplyment(Long memberId) {

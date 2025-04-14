@@ -121,6 +121,33 @@ public class PostAttachmentService {
 			return;
 		}
 
+		// 실제 업로드 가능한 파일이 있는지 확인 (빈 MultipartFile 객체는 있지만 내용이 없는 경우 처리)
+		boolean hasRealFiles = files.stream().anyMatch(file -> !file.isEmpty());
+		if (!hasRealFiles) {
+			// 실제 업로드할 파일이 없으면 기존 파일 유지
+			return;
+		}
+
+		Long editProposalId = editProposal.getId();
+
+		// 기존 파일 삭제 로직 추가
+		List<PostAttachment> existingAttachments = postAttachmentRepository.findByMentorEditProposalId(editProposalId);
+		for (PostAttachment attachment : existingAttachments) {
+			// Firebase에서 물리적 파일 삭제
+			try {
+				String filePath = attachment.getStoreFilePath();
+				if (filePath != null && !filePath.isEmpty()) {
+					firebaseStorageService.deleteFile(filePath);
+				}
+			} catch (Exception e) {
+				log.warn("파일 삭제 중 오류 발생: {}", e.getMessage());
+				// 파일 삭제 실패해도 계속 진행
+			}
+
+			// DB에서 첨부파일 레코드 삭제
+			postAttachmentRepository.delete(attachment);
+		}
+
 		Long memberId = editProposal.getMember().getId();
 		// 파일 개수 체크
 		long currentFileCount = postAttachmentRepository.countByMemberId(memberId);

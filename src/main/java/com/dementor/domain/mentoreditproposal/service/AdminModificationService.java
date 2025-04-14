@@ -9,16 +9,13 @@ import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.AdminModificationRepository;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
-
+import com.dementor.domain.postattachment.repository.PostAttachmentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import static java.time.LocalTime.now;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +23,7 @@ public class AdminModificationService {
 	private final AdminModificationRepository adminModificationRepository;
 	private final MentorEditProposalRepository mentorEditProposalRepository;
 	private final MentorRepository mentorRepository;
+	private final PostAttachmentRepository postAttachmentRepository;
 
 	public Page<MentorEditFindAllRenewalResponse> findAllModificationRequest(Pageable pageable) {
 		Page<MentorEditProposal> mentorEditProposalPage;
@@ -55,15 +53,7 @@ public class AdminModificationService {
 		mentorEditProposalRepository.save(mentorEditProposal);
 		mentorRepository.save(mentor);
 
-		// MentorEditUpdateRenewalResponse 객체 생성
-		MentorEditUpdateRenewalResponse response = new MentorEditUpdateRenewalResponse(
-			mentor.getId(),
-			memberId,
-			mentorEditProposal.getStatus(),
-			now().toString()
-		);
-
-		return response;
+		return MentorEditUpdateRenewalResponse.from(mentorEditProposal);
 	}
 
 	@Transactional
@@ -80,14 +70,6 @@ public class AdminModificationService {
 		mentorEditProposalRepository.save(mentorEditProposal);
 		mentorRepository.save(mentor);
 
-		// MentorEditUpdateRenewalResponse 객체 생성
-		MentorEditUpdateRenewalResponse response = new MentorEditUpdateRenewalResponse(
-			mentor.getId(),
-			memberId,
-			mentorEditProposal.getStatus(),
-			now().toString()
-		);
-
-		return response;
+		return MentorEditUpdateRenewalResponse.from(mentorEditProposal);
 	}
 }

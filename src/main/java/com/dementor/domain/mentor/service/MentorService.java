@@ -29,6 +29,7 @@ import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalRespons
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
+import com.dementor.domain.postattachment.entity.PostAttachment;
 import com.dementor.domain.postattachment.repository.PostAttachmentRepository;
 import com.dementor.domain.postattachment.service.PostAttachmentService;
 import jakarta.transaction.Transactional;
@@ -41,9 +42,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,11 +51,11 @@ public class MentorService {
 	private final MentorRepository mentorRepository;
 	private final MemberRepository memberRepository;
 	private final JobRepository jobRepository;
-	private final PostAttachmentRepository attachmentRepository;
 	private final MentorEditProposalRepository mentorEditProposalRepository;
 	private final MentorApplyProposalRepository mentorApplyProposalRepository;
 	private final ApplyRepository applyRepository;
 	private final PostAttachmentService postAttachmentService;
+	private final PostAttachmentRepository postAttachmentRepository;
 
 	//멘토 지원하기
 	@Transactional
@@ -95,7 +94,7 @@ public class MentorService {
 		}
 
 		// 응답 데이터 구성
-		return ApplymentResponse.from(savedProposal, savedProposal.getJob());
+		return ApplymentResponse.from(savedProposal);
 	}
 
 	//멘토 정보 업데이트
@@ -115,16 +114,23 @@ public class MentorService {
 				"이미 정보 수정 요청 중입니다: " + memberId);
 		}
 
-		// 변경 사항이 있는지 확인
-		if (!requestDto.hasChanges(mentor)) {
+		// 기본 데이터 변경 여부 확인
+		boolean dataChanged = requestDto.hasChanges(mentor);
+
+		// 파일 변경 여부는 파일이 존재하는지만 확인 (단순화)
+		boolean filesChanged = (files != null && !files.isEmpty());
+
+		if (!dataChanged && !filesChanged) {
 			throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
-				"변경된 내용이 없습니다.");
+					"변경된 내용이 없습니다.");
 		}
 
 		// 직무 엔티티 조회
-		Job job = jobRepository.findById(requestDto.getJobId())
+		Job job = (requestDto.getJobId() != null)
+				? jobRepository.findById(requestDto.getJobId())
 				.orElseThrow(() -> new MentorException(MentorErrorCode.JOB_NOT_FOUND,
-						"직무 정보를 찾을 수 없습니다: " + requestDto.getJobId()));
+						"직무 정보를 찾을 수 없습니다: " + requestDto.getJobId()))
+				: mentor.getJob();
 
 		// 수정 요청 엔티티 생성 및 저장
 		MentorEditProposal savedModification = createAndSaveMentorModification(requestDto, mentor, job);
@@ -134,7 +140,7 @@ public class MentorService {
 		mentorRepository.save(mentor);
 
 		// 파일 업로드 처리
-		if (files != null && !files.isEmpty()) {
+		if (filesChanged) {
 			postAttachmentService.uploadFilesEdit(files, savedModification);
 		}
 
@@ -171,10 +177,12 @@ public class MentorService {
 
 		MentorEditProposal modification = MentorEditProposal.builder()
 				.member(mentor.getMember())
-				.career(requestDto.getCareer())
-				.currentCompany(requestDto.getCurrentCompany())
+				.career(requestDto.getCareer() != null ? requestDto.getCareer() : mentor.getCareer())
+				.currentCompany(requestDto.getCurrentCompany() != null ?
+						requestDto.getCurrentCompany() : mentor.getCurrentCompany())
 				.job(job)
-				.introduction(requestDto.getIntroduction())
+				.introduction(requestDto.getIntroduction() != null ?
+						requestDto.getIntroduction() : mentor.getIntroduction())
 				.status(MentorEditProposalStatus.PENDING)
 				.build();
 
@@ -275,11 +283,17 @@ public class MentorService {
 				new MentorChangeResponse.FieldChange<>(mentor.getIntroduction(), proposal.getIntroduction()));
 		}
 
+		List<PostAttachment> postAttachments = postAttachmentRepository.findByMentorEditProposalId(proposal.getId());
+		List<MentorChangeResponse.AttachmentInfo> attachments = postAttachments.stream()
+				.map(MentorChangeResponse.AttachmentInfo::from)
+				.collect(Collectors.toList());
+
 		return new MentorChangeResponse.ChangeRequestData(
 			proposal.getId(),
 			proposal.getStatus().name(),
 			proposal.getCreatedAt(),
-			modifiedFields
+			modifiedFields,
+			attachments
 		);
 	}
 
