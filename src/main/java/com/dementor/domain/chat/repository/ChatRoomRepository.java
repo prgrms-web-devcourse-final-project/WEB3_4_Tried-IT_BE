@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
@@ -33,4 +34,17 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		      AND r.adminId = :adminId
 		""")
 	List<ChatRoom> findAdminChatRoomsByAdminId(@Param("adminId") Long adminId);
+
+
+	// 특정 Admin과 Member 사이의 ADMIN_CHAT 채팅방 조회 (중복 생성 방지용)
+	@Query("""
+    SELECT r FROM ChatRoom r
+    WHERE r.roomType = 'ADMIN_CHAT'
+      AND r.adminId = :adminId
+      AND r.memberId = :memberId
+""")
+	List<ChatRoom> findAdminChatRoomByAdminIdAndMemberId(
+			@Param("adminId") Long adminId,
+			@Param("memberId") Long memberId
+	);
 }

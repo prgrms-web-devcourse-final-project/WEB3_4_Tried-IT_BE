@@ -8,8 +8,10 @@ import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.member.entity.Member;
+import com.dementor.domain.member.entity.UserRole;
 import com.dementor.domain.member.repository.MemberRepository;
 
+import com.dementor.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -57,6 +60,20 @@ public class ChatRoomService {
 	// 관리자 채팅방 생성
 	@Transactional
 	public ChatRoomResponseDto createAdminChatRooms(Admin admin, Member member) {
+
+		// 중복생성 방지
+		Long fixedAdminId = admin.getId(); // 또는 고정된 5L
+
+		List<ChatRoom> existingRooms = chatRoomRepository.findAdminChatRoomByAdminIdAndMemberId(
+				fixedAdminId, member.getId()
+		);
+
+		if (!existingRooms.isEmpty()) {
+			// 여러 개가 있어도 첫 번째 채팅방만 사용
+			return toDto(existingRooms.get(0), fixedAdminId);
+		}
+
+		//없다면 새로 생성
 		ChatRoom room = ChatRoom.builder()
 			.roomType(RoomType.ADMIN_CHAT)
 			.adminId(admin.getId())
@@ -85,38 +102,49 @@ public class ChatRoomService {
 
 	// 관리자(adminId)기준 참여중인 모든 채팅방 조회
 	@Transactional(readOnly = true)
-	public List<ChatRoomResponseDto> getAllMyAdminChatRooms(Long adminId) {
+//	public List<ChatRoomResponseDto> getAllMyAdminChatRooms(Long adminId) {
+	public List<ChatRoomResponseDto> getAllMyAdminChatRooms(CustomUserDetails userDetails) {
+
+		Long adminId = userDetails.getId();  // 로그인된 관리자 ID
 		List<ChatRoom> rooms = chatRoomRepository.findAdminChatRoomsByAdminId(adminId);
 		return rooms.stream().map(room -> toDto(room, adminId)).toList();
 	}
 
 	//---------------------채팅방 상세 조회(viewerId,viewerType 매칭) --------------------------------------
 	@Transactional(readOnly = true)
-	public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Long viewerId, String viewerType) {
+	public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, CustomUserDetails userDetails) {
 		ChatRoom room = chatRoomRepository.findById(chatRoomId)
-			.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));  //roomId 존재안함
+				.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+		Long viewerId = userDetails.getId();
+		String authority = userDetails.getAuthorities().iterator().next().getAuthority(); // ex: ROLE_MENTOR, ROLE_ADMIN
 
 		if (room.getRoomType() == RoomType.MENTORING_CHAT) {
-			// viewerType이 member가 아닐 경우 차단
-			if (!"member" .equals(viewerType)) {
-				throw new SecurityException("멘토링 채팅방은 member만 접근할 수 있습니다.");
+			// getRole()을 직접 호출하지 않고 authority 기반으로 판단
+			if (!"ROLE_MENTOR".equals(authority) && !"ROLE_MENTEE".equals(authority)) {
+				throw new SecurityException("멘토링 채팅방은 멘토 또는 멘티만 접근할 수 있습니다.");
 			}
-			//  viewerId가 mentorId 또는 menteeId와 일치여부
+
 			if (!viewerId.equals(room.getMentorId()) && !viewerId.equals(room.getMenteeId())) {
 				throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
 			}
 
 		} else if (room.getRoomType() == RoomType.ADMIN_CHAT) {
-			if ("member" .equals(viewerType) && !viewerId.equals(room.getMemberId())) {
-				throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
-			}
-			if ("admin" .equals(viewerType) && !viewerId.equals(room.getAdminId())) {
-				throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+			if ("ROLE_ADMIN".equals(authority)) {
+				if (!viewerId.equals(room.getAdminId())) {
+					throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+				}
+			} else {
+				if (!viewerId.equals(room.getMemberId())) {
+					throw new SecurityException("해당 채팅방에 접근할 수 없습니다.");
+				}
 			}
 		}
 
 		return toDto(room, viewerId);
 	}
+
+
 
 	//-----------------------------닉네임관련-----------------------------------
 	// ChatRoomResponseDto 변환 & 실시간 닉네임 조회

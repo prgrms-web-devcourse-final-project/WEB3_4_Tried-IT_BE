@@ -5,6 +5,7 @@ import com.dementor.domain.chat.dto.ChatMessageSendDto;
 import com.dementor.domain.chat.entity.ChatMessage;
 import com.dementor.domain.chat.entity.ChatRoom;
 import com.dementor.domain.chat.entity.MessageType;
+import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 
@@ -72,29 +73,31 @@ public class ChatMessageService {
 	 * - DB에 저장 후, RabbitMQ 통해 실시간 브로드캐스트
 	 */
 	@Transactional
-	public ChatMessageResponseDto sendMessage(ChatMessageSendDto dto) {
+//	public ChatMessageResponseDto sendMessage(Long chatRoomId, ChatMessageSendDto dto, Long senderId, SenderType senderType) {
+    public ChatMessageResponseDto sendMessage(Long chatRoomId, ChatMessageSendDto dto) {
 
-		// 참여자 검증 로직 추가 (기존 ChatRoomService 로직 재사용)
-		chatRoomService.getChatRoomDetail(
-			dto.getChatRoomId(),
-			dto.getSenderId(),          // senderId == viewerId
-			dto.getSenderType().name().toLowerCase() // senderType == viewerType ( enum → "member"/"admin")
-		);
+//
+//		// 참여자 검증 로직 추가 (기존 ChatRoomService 로직 재사용)
+//		chatRoomService.getChatRoomDetail(
+//				dto.getChatRoomId(),
+//				dto.getSenderId(),          // senderId == viewerId
+//				dto.getSenderType().name().toLowerCase() // senderType == viewerType ( enum → "member"/"admin")
+//		);
 
 		// 채팅방 유효성 검사
-		ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
+		ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
 			.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 
-		// 메시지 엔티티 생성
-		ChatMessage chatMessage = ChatMessage.builder()
-			.chatRoom(chatRoom)
-			.senderId(dto.getSenderId())
-			.senderType(dto.getSenderType())
-			.content(dto.getContent())
-			.sentAt(LocalDateTime.now())
-			.build();
+        // 메시지 엔티티 생성
+        ChatMessage chatMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .senderId(dto.getSenderId())
+                .senderType(dto.getSenderType())
+                .content(dto.getContent())
+                .sentAt(LocalDateTime.now())
+                .build();
 
-		// DB 저장
+        // DB 저장
 		chatMessageRepository.save(chatMessage);
 		chatRoom.updateLastMessageTime(chatMessage.getSentAt());
 

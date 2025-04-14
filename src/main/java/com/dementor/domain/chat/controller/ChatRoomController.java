@@ -3,7 +3,7 @@ package com.dementor.domain.chat.controller;
 import com.dementor.domain.admin.entity.Admin;
 import com.dementor.domain.admin.repository.AdminRepository;
 import com.dementor.domain.chat.dto.ChatRoomResponseDto;
-import com.dementor.domain.chat.service.ChatMessageService;
+//import com.dementor.domain.chat.service.ChatMessageService;
 
 import com.dementor.domain.chat.service.ChatRoomService;
 import com.dementor.domain.member.entity.Member;
@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import com.dementor.global.security.CustomUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chat")
 public class ChatRoomController {
 
 	private final ChatRoomService chatRoomService;
-	private final ChatMessageService chatMessageService;
+//	private final ChatMessageService chatMessageService;
 
 	private final MemberRepository memberRepository;
 	private final AdminRepository adminRepository;
@@ -32,15 +35,21 @@ public class ChatRoomController {
 	//관리자 챗 채팅방 생성
 	@PostMapping("/admin-room")
 	public ResponseEntity<ChatRoomResponseDto> createAdminChatRoom(
-		@RequestParam Long adminId,
-		@RequestParam Long memberId
+		@AuthenticationPrincipal CustomUserDetails userDetails
+
 	) {
-		Admin admin = adminRepository.findById(adminId)
+		// 로그인된 멤버 Id 가저오기
+		Long memberId = userDetails.getId(); // 로그인된 사용자 ID 가져오기
+
+		//멤버 엔티티 조회
+		Member member = memberRepository.findById(memberId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+		//고정 기본 관리자 조회 (예정)
+		Admin admin = adminRepository.findById(5L)
 			.orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
 
-		Member member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
+		//채팅방 생성
 		ChatRoomResponseDto room = chatRoomService.createAdminChatRooms(admin, member); //  반환값 받도록 변경
 
 		return ResponseEntity.ok(room);
@@ -49,28 +58,35 @@ public class ChatRoomController {
 	//멤버가 자신의 채팅방목록 조회
 	@GetMapping("/member/rooms")
 	public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsMember(
-		@RequestParam Long memberId
+//		@RequestParam Long memberId
+			@AuthenticationPrincipal CustomUserDetails userDetails
+
 	) {
+		Long memberId = userDetails.getId();  // 로그인한 사용자 ID 추출
+
 		return ResponseEntity.ok(chatRoomService.getAllMyChatRooms(memberId));
 	}
+
 
 	//관리자가 자신의 채팅방목록 조회
 	@GetMapping("/admin/rooms")
 	public ResponseEntity<List<ChatRoomResponseDto>> getMyRoomsAsAdmin(
-		@RequestParam Long adminId
+//		@RequestParam Long adminId
+		@AuthenticationPrincipal CustomUserDetails userDetails
 	) {
-		return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(adminId));
+		return ResponseEntity.ok(chatRoomService.getAllMyAdminChatRooms(userDetails));
 	}
 
 	// ---------------------채팅방 상세 조회--------------------------------------
 	@GetMapping("/room/{chatRoomId}")
 	public ResponseEntity<ChatRoomResponseDto> getChatRoomDetail(
 		@PathVariable Long chatRoomId,
-		@RequestParam Long viewerId,
-		@RequestParam String viewerType
+//		@RequestParam Long viewerId,
+//		@RequestParam String viewerType
+		@AuthenticationPrincipal CustomUserDetails userDetails
+
 	) {
-		ChatRoomResponseDto response = chatRoomService.getChatRoomDetail(chatRoomId, viewerId, viewerType);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(chatRoomService.getChatRoomDetail(chatRoomId, userDetails));
 	}
 
 }

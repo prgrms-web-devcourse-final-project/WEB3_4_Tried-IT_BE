@@ -53,7 +53,7 @@ public class AdminMentorApplymentService {
 
 	public ApplymentApprovalResponse approveApplyment(Long memberId) {
 		// 지원서 조회
-		MentorApplyProposal applyment = mentorApplyProposalRepository.findByMemberId(memberId)
+		MentorApplyProposal applyment = mentorApplyProposalRepository.findByMemberIdAndStatus(memberId, MentorApplyProposalStatus.PENDING)
 			.orElseThrow(() -> new EntityNotFoundException("지원서를 찾을 수 없습니다."));
 
 		// 회원 정보 조회
@@ -87,7 +87,7 @@ public class AdminMentorApplymentService {
 
 	public ApplymentRejectResponse rejectApplyment(Long memberId, ApplymentRejectRequest request) {
 		// 지원서 조회
-		MentorApplyProposal applyment = mentorApplyProposalRepository.findByMemberId(memberId)
+		MentorApplyProposal applyment = mentorApplyProposalRepository.findByMemberIdAndStatus(memberId, MentorApplyProposalStatus.PENDING)
 			.orElseThrow(() -> new EntityNotFoundException("지원서를 찾을 수 없습니다."));
 
 		// 지원서 상태를 거절로 변경하고 거절 사유 저장

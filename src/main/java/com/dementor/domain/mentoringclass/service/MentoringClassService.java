@@ -119,7 +119,6 @@ public class MentoringClassService {
 			mentoringClass.updatePrice(request.price());
 		if (request.stack() != null)
 			mentoringClass.updateStack(request.stack());
-		mentoringClassRepository.save(mentoringClass);
 
 		// 일정 정보
 		Schedule schedule = scheduleRepository.findByMentoringClassId(classId)
@@ -130,7 +129,6 @@ public class MentoringClassService {
 		if (request.schedule() != null) {
 			schedule.updateDayOfWeek(request.schedule().dayOfWeek());
 			schedule.updateTime(request.schedule().time());
-			scheduleRepository.save(schedule);
 		}
 
 		return new MentoringClassUpdateResponse(

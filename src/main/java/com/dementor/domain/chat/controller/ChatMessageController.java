@@ -38,9 +38,18 @@ public class ChatMessageController {
 	public ResponseEntity<ChatMessageResponseDto> sendMessage(
 		@PathVariable Long chatRoomId,
 		@RequestBody ChatMessageSendDto dto
-	) {
-		dto.setChatRoomId(chatRoomId);
-		ChatMessageResponseDto response = chatMessageService.sendMessage(dto);
+//        @AuthenticationPrincipal CustomUserDetails user
+
+    ) {
+
+		ChatMessageResponseDto response = chatMessageService.sendMessage(chatRoomId, dto);
+
+//        Long senderId = user.getId();
+//        String authority = user.getAuthorities().iterator().next().getAuthority();
+//        SenderType senderType = authority.equals("ROLE_ADMIN") ? SenderType.ADMIN : SenderType.MEMBER;
+//
+//        ChatMessageResponseDto response = chatMessageService.sendMessage(chatRoomId, dto, senderId, senderType);
+//
 		return ResponseEntity.ok(response);
 	}
 
@@ -49,15 +58,14 @@ public class ChatMessageController {
 	public void receiveMessageViaWebsocket(
 		@DestinationVariable Long chatRoomId,
 		ChatMessageSendDto dto
-		//             ,@AuthenticationPrincipal CustomUserDetails user // 로그인한 사용자 정보 자동 주입
+//        @AuthenticationPrincipal CustomUserDetails user // 로그인한 사용자 정보 자동 주입
 
 	) {
-		dto.setChatRoomId(chatRoomId); // 채팅방 Id는 경로 변수로 주입
+//        Long senderId = user.getId();
+//        String authority = user.getAuthorities().iterator().next().getAuthority();
+//        SenderType senderType = authority.equals("ROLE_ADMIN") ? SenderType.ADMIN : SenderType.MEMBER;
 
-		//        // sender 정보는 프론트에서 안 받고 백엔드에서 직접 설정
-		//        dto.setSenderId(user.getId());
-		//        dto.setSenderType(SenderType.valueOf(user.getRole().name()));
-
-		chatMessageService.sendMessage(dto);
-	}
+//        chatMessageService.sendMessage(chatRoomId,dto, senderId, senderType);
+		chatMessageService.sendMessage(chatRoomId, dto);
+    }
 }
