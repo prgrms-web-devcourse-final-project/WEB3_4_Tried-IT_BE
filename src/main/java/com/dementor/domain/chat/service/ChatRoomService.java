@@ -103,6 +103,11 @@ public class ChatRoomService {
 		return List.of(mentoringRooms, adminRooms).stream()
 				.flatMap(List::stream)
 				.map(room -> toDto(room, memberId, ViewerType.MEMBER )) // viewerId 넘기기
+				.sorted((r1, r2) -> { // 최근 메시지 기준 정렬 추가
+					if (r1.getLastMessageAt() == null) return 1;
+					if (r2.getLastMessageAt() == null) return -1;
+					return r2.getLastMessageAt().compareTo(r1.getLastMessageAt());
+				})
 				.toList();
 	}
 
@@ -111,7 +116,14 @@ public class ChatRoomService {
 	public List<ChatRoomResponseDto> getAllMyAdminChatRooms(Long adminId) {
 
 		List<ChatRoom> rooms = chatRoomRepository.findAdminChatRoomsByAdminId(adminId);
-		return rooms.stream().map(room -> toDto(room, adminId, ViewerType.ADMIN)).toList();
+		return rooms.stream()
+				.map(room -> toDto(room, adminId, ViewerType.ADMIN))
+				.sorted((r1, r2) -> { // 최근 메시지 기준 정렬 추가
+					if (r1.getLastMessageAt() == null) return 1;
+					if (r2.getLastMessageAt() == null) return -1;
+					return r2.getLastMessageAt().compareTo(r1.getLastMessageAt());
+				})
+				.toList();
 	}
 
 

@@ -33,7 +33,7 @@ public class ChatMessageController {
 		return ResponseEntity.ok(messages);
 	}
 
-	// 2. 메시지 전송 (REST) 클->서버, 메시지 저장
+	// 2. 메시지 전송 (REST) swagger 또는 테스트용
 	@PostMapping
 	public ResponseEntity<ChatMessageResponseDto> sendMessage(
 		@PathVariable Long chatRoomId,
@@ -53,7 +53,7 @@ public class ChatMessageController {
 		return ResponseEntity.ok(response);
 	}
 
-	// 3. 메시지 전송 (WebSocket), RabbitMQ 통해 서버->클(구독자)
+	// 3. 메시지 전송 (WebSocket), RabbitMQ 통해 클->서버->브로커->클
 	@MessageMapping("/chat/rooms/{chatRoomId}/messages/create")
 	public void receiveMessageViaWebsocket(
 		@DestinationVariable Long chatRoomId,

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class ChatMessageService {
 
 		// 오래된 순으로 정렬
 		return messages.stream()
-			.sorted((m1, m2) -> Long.compare(m1.getChatMessageId(), m2.getChatMessageId()))
+			.sorted(Comparator.comparingLong(ChatMessage::getChatMessageId))
 			.map(chatMessage -> new ChatMessageResponseDto(
 				chatMessage.getChatRoom().getChatRoomId(),
 				chatMessage.getSenderId(),

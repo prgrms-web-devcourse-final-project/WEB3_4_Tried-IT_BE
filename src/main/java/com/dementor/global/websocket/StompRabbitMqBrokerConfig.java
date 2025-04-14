@@ -31,8 +31,8 @@ public class StompRabbitMqBrokerConfig implements WebSocketMessageBrokerConfigur
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
 		registry
-			.setApplicationDestinationPrefixes("/app")
-			.enableStompBrokerRelay("/topic")
+			.setApplicationDestinationPrefixes("/app")// 클-> 서버
+			.enableStompBrokerRelay("/topic") //서버->클 브로드캐스트 경로
 			.setRelayHost(rabbitmqHost)
 			.setRelayPort(61613)
 			.setClientLogin(rabbitmqUsername)
