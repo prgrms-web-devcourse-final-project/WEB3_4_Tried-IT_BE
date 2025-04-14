@@ -1,13 +1,5 @@
 package com.dementor.domain.mentoringclass.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.dementor.domain.mentor.dto.response.MyMentoringResponse;
 import com.dementor.domain.mentor.entity.Mentor;
 import com.dementor.domain.mentor.repository.MentorRepository;
@@ -22,9 +14,15 @@ import com.dementor.domain.mentoringclass.exception.MentoringClassException;
 import com.dementor.domain.mentoringclass.exception.MentoringClassExceptionCode;
 import com.dementor.domain.mentoringclass.repository.MentoringClassRepository;
 import com.dementor.domain.mentoringclass.repository.ScheduleRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -98,8 +96,15 @@ public class MentoringClassService {
 		return MentoringClassDetailResponse.from(mentoringClass, schedules);
 	}
 
+	@Transactional
 	public void deleteClass(Long classId) {
-		mentoringClassRepository.deleteById(classId);
+		MentoringClass mentoringClass = mentoringClassRepository.findById(classId)
+			.orElseThrow(() -> new MentoringClassException(MentoringClassExceptionCode.MENTORING_CLASS_NOT_FOUND));
+			
+		List<Schedule> schedules = scheduleRepository.findByMentoringClassId(classId);
+		scheduleRepository.deleteAll(schedules);
+		
+		mentoringClassRepository.delete(mentoringClass);
 	}
 
 	@Transactional

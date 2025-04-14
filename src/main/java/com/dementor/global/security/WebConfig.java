@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
 			.allowedOrigins(
 				"https://www.dementor.site",
 				"https://api.dementor.site",
+				"https://admin.dementor.site",
 				"https://local.dementor.site:5173",
 				"https://admin-local.dementor.site:5174"
 			)
