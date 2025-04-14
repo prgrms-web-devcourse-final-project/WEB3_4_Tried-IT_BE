@@ -2,10 +2,7 @@ package com.dementor.domain.chat.service;
 
 import com.dementor.domain.chat.dto.ChatMessageResponseDto;
 import com.dementor.domain.chat.dto.ChatMessageSendDto;
-import com.dementor.domain.chat.entity.ChatMessage;
-import com.dementor.domain.chat.entity.ChatRoom;
-import com.dementor.domain.chat.entity.MessageType;
-import com.dementor.domain.chat.entity.SenderType;
+import com.dementor.domain.chat.entity.*;
 import com.dementor.domain.chat.repository.ChatMessageRepository;
 import com.dementor.domain.chat.repository.ChatRoomRepository;
 
@@ -76,17 +73,14 @@ public class ChatMessageService {
 //	public ChatMessageResponseDto sendMessage(Long chatRoomId, ChatMessageSendDto dto, Long senderId, SenderType senderType) {
     public ChatMessageResponseDto sendMessage(Long chatRoomId, ChatMessageSendDto dto) {
 
-//
-//		// 참여자 검증 로직 추가 (기존 ChatRoomService 로직 재사용)
-//		chatRoomService.getChatRoomDetail(
-//				dto.getChatRoomId(),
-//				dto.getSenderId(),          // senderId == viewerId
-//				dto.getSenderType().name().toLowerCase() // senderType == viewerType ( enum → "member"/"admin")
-//		);
-
 		// 채팅방 유효성 검사
 		ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-			.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+				.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+
+		// 참여자 검증 로직 (ChatRoomService 사용 대신 직접 구현)
+		validateChatParticipant(chatRoom, dto.getSenderId(), dto.getSenderType());
+
 
         // 메시지 엔티티 생성
         ChatMessage chatMessage = ChatMessage.builder()
@@ -118,6 +112,31 @@ public class ChatMessageService {
 		);
 
 		return responseDto;
+	}
+
+
+	// 참여자 검증 로직
+	private void validateChatParticipant(ChatRoom room, Long senderId, SenderType senderType) {
+		if (room.getRoomType() == RoomType.MENTORING_CHAT) {
+			if (senderType != SenderType.MEMBER) {
+				throw new SecurityException("멘토링 채팅방에는 멤버만 참여할 수 있습니다.");
+			}
+			if (!(senderId.equals(room.getMentorId()) || senderId.equals(room.getMenteeId()))) {
+				throw new SecurityException("해당 멘토링 채팅방에 접근할 수 없습니다.");
+			}
+		} else if (room.getRoomType() == RoomType.ADMIN_CHAT) {
+			if (senderType == SenderType.ADMIN) {
+				if (!senderId.equals(room.getAdminId())) {
+					throw new SecurityException("해당 채팅방의 관리자와 일치하지 않습니다.");
+				}
+			} else if (senderType == SenderType.MEMBER) {
+				if (!senderId.equals(room.getMemberId())) {
+					throw new SecurityException("해당 채팅방의 멤버가 아닙니다.");
+				}
+			} else {
+				throw new SecurityException("알 수 없는 사용자 유형입니다.");
+			}
+		}
 	}
 }
 

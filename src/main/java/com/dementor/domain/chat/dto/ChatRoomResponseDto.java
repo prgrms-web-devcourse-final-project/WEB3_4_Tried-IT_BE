@@ -20,4 +20,5 @@ public class ChatRoomResponseDto {
 	private String lastMessage;  // 마지막 메시지 내용
 	private ZonedDateTime lastMessageAt; // 마지막 메시지 보낸시간
 	private String targetNickname;  //상대방 닉네임
+	private Long targetId; //상대방 ID
 }
