@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
 		MentorErrorCode errorCode = e.getErrorCode();
 		return ApiResponse.of(false,
 			errorCode.getStatus(),
-			errorCode.getMessage());
+			e.getMessage());
 	}
 
 	// MaxUploadSizeExceededException 처리
