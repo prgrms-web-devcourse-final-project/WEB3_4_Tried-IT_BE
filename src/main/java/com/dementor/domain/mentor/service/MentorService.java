@@ -105,7 +105,7 @@ public class MentorService {
 		// 파일이나 마크다운 중 하나는 필수
 		validateFileOrMarkdown(files, requestDto.getIntroduction());
 
-		Mentor mentor = findMentorById(memberId);
+		Mentor mentor = findMentorById(memberId, "멘토 정보를 업데이트할 수 없습니다: " + memberId);
 
 		// 현재 정보 수정 요청 중인지 확인
 		if (mentor.getModificationStatus() == ModificationStatus.PENDING) {
@@ -141,7 +141,7 @@ public class MentorService {
 	//멘토 정보 조회
 	@Transactional(readOnly = true)
 	public MentorInfoResponse getMentorInfo(Long memberId) {
-		Mentor mentor = findMentorById(memberId);
+		Mentor mentor = findMentorById(memberId, "멘토 정보를 조회할 수 없습니다: " + memberId);
 
 		// 멘토의 클래스 ID 목록 조회
 		List<Long> classIds = mentorRepository.findMentoringClassIdsByMentor(mentor);
@@ -168,8 +168,11 @@ public class MentorService {
 		// 멘토 존재 여부 확인
 		checkMentorExists(memberId);
 
-		// 상태 유효성 검증
-		validateStatusParameter(params.status());
+		// 페이지네이션 파라미터 검증
+		if (params.page() < 1 || params.size() < 1) {
+			throw new MentorException(MentorErrorCode.INVALID_PAGE_PARAMS,
+					"페이지 번호와 크기는 1 이상이어야 합니다.");
+		}
 
 		// 페이지네이션 설정
 		Pageable pageable = PageRequest.of(
@@ -206,7 +209,7 @@ public class MentorService {
 			throw new MentorException(MentorErrorCode.INVALID_STATUS_PARAM,
 					"유효하지 않은 상태값입니다: " + params.status());
 		} catch (Exception e) {
-			throw new MentorException(MentorErrorCode.INVALID_STATUS_PARAM,
+			throw new MentorException(MentorErrorCode.INTERNAL_SERVER_ERROR,
 					"멘토 정보 수정 요청 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
@@ -214,8 +217,7 @@ public class MentorService {
 	@Transactional(readOnly = true)
 	public MentorApplyResponse.GetApplyMenteePageList getApplyByMentor(Long memberId, int page, int size) {
 
-		Mentor mentor = mentorRepository.findById(memberId)
-			.orElseThrow(() -> new IllegalArgumentException("멘토만 조회할 수 있습니다."));
+		Mentor mentor = findMentorById(memberId, "멘토만 조회할 수 있습니다.");
 
 		// 멘토가 가진 클래스 아이디 목록 조회
 		List<Long> classId = mentorRepository.findMentoringClassIdsByMentor(mentor);
@@ -229,13 +231,12 @@ public class MentorService {
 
 	@Transactional
 	public MentorApplyStatusResponse updateApplyStatus(Long memberId, Long applyId, MentorApplyStatusRequest request) {
-		// 멘토 검증
-		Mentor mentor = mentorRepository.findById(memberId)
-			.orElseThrow(() -> new IllegalArgumentException("멘토만 상태를 변경할 수 있습니다."));
+		Mentor mentor = findMentorById(memberId, "멘토만 상태를 변경할 수 있습니다.");
 
 		// 신청 정보 조회
 		Apply apply = applyRepository.findById(applyId)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+				.orElseThrow(() -> new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
+						"존재하지 않는 신청입니다."));
 
 		// 멘토의 클래스인지 확인
 		List<Long> classIds = mentorRepository.findMentoringClassIdsByMentor(mentor);
@@ -243,9 +244,9 @@ public class MentorService {
 			throw new AccessDeniedException("자신의 멘토링 클래스에 대한 신청만 변경할 수 있습니다.");
 		}
 
-		//이미 승인/거절을 한 신청인지 확인
+		// 이미 승인/거절을 한 신청인지 확인
 		if (apply.getApplyStatus() == ApplyStatus.APPROVED || apply.getApplyStatus() == ApplyStatus.REJECTED) {
-			throw new IllegalArgumentException("이미 승인/거절된 신청입니다.");
+			throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION, "이미 승인/거절된 신청입니다.");
 		}
 
 		// 상태 변경
@@ -302,7 +303,7 @@ public class MentorService {
 		Map<String, MentorChangeResponse.FieldChange<?>> modifiedFields = new HashMap<>();
 
 		// 기존 멘토 정보 조회
-		Mentor mentor = findMentorById(proposal.getMember().getId());
+		Mentor mentor = findMentorById(proposal.getMember().getId(), "멘토의 변경 내역을 조회할 수 없습니다: " + proposal.getMember().getId());
 
 		if (!proposal.getCareer().equals(mentor.getCareer())) {
 			modifiedFields.put("career",
@@ -339,15 +340,14 @@ public class MentorService {
 	// 직무 ID로 직무 조회
 	private Job findJobById(Long jobId) {
 		return jobRepository.findById(jobId)
-				.orElseThrow(() -> new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
+				.orElseThrow(() -> new MentorException(MentorErrorCode.JOB_NOT_FOUND,
 						"직무를 찾을 수 없습니다: " + jobId));
 	}
 
-	// 멘토 ID로 멘토 조회
-	private Mentor findMentorById(Long mentorId) {
+	// 멘토 ID로 멘토 조회 (사용자 정의 오류 메시지 지원)
+	private Mentor findMentorById(Long mentorId, String errorMessage) {
 		return mentorRepository.findById(mentorId)
-				.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-						"멘토를 찾을 수 없습니다: " + mentorId));
+				.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND, errorMessage));
 	}
 
 	// 멘토 존재 여부 확인
@@ -361,14 +361,8 @@ public class MentorService {
 	// 파일 또는 마크다운 필수 검증
 	private void validateFileOrMarkdown(List<MultipartFile> files, String markdown) {
 		if ((files == null || files.isEmpty()) && (markdown == null || markdown.isEmpty())) {
-			throw new IllegalArgumentException("파일 또는 마크다운 텍스트 중 하나는 필수입니다.");
-		}
-	}
-
-	// 상태값 유효성 검증
-	private void validateStatusParameter(String status) {
-		if (status != null && !List.of("PENDING", "APPROVED", "REJECTED").contains(status)) {
-			throw new IllegalArgumentException("유효하지 않은 상태값입니다.");
+			throw new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
+					"파일 또는 마크다운 텍스트 중 하나는 필수입니다.");
 		}
 	}
 }
