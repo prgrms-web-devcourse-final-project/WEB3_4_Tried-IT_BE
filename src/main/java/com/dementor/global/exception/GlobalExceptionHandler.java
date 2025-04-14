@@ -52,7 +52,9 @@ public class GlobalExceptionHandler {
 	// MaxUploadSizeExceededException 처리
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ApiResponse<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-		return ApiResponse.of(false, HttpStatus.PAYLOAD_TOO_LARGE, "파일 크기가 허용 범위를 초과했습니다. 최대 10MB까지 가능합니다.");
+		return ApiResponse.of(false,
+				HttpStatus.PAYLOAD_TOO_LARGE,
+				e.getMessage());
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)

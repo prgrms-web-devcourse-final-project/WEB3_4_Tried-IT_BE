@@ -29,9 +29,8 @@ import com.dementor.domain.mentoreditproposal.dto.MentorEditUpdateRenewalRespons
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposal;
 import com.dementor.domain.mentoreditproposal.entity.MentorEditProposalStatus;
 import com.dementor.domain.mentoreditproposal.repository.MentorEditProposalRepository;
-import com.dementor.domain.postattachment.repository.PostAttachmentRepository;
 import com.dementor.domain.postattachment.service.PostAttachmentService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +51,6 @@ public class MentorService {
 	private final MentorRepository mentorRepository;
 	private final MemberRepository memberRepository;
 	private final JobRepository jobRepository;
-	private final PostAttachmentRepository attachmentRepository;
 	private final MentorEditProposalRepository mentorEditProposalRepository;
 	private final MentorApplyProposalRepository mentorApplyProposalRepository;
 	private final ApplyRepository applyRepository;
@@ -64,10 +62,11 @@ public class MentorService {
 			MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto,
 			List<MultipartFile> files) {
 
+		// 파일이나 마크다운 중 하나는 필수
+		validateFileOrMarkdown(files, requestDto.introduction());
+
 		// 회원 엔티티 조회
-		Member member = memberRepository.findById(requestDto.memberId())
-			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"회원을 찾을 수 없습니다: " + requestDto.memberId()));
+		Member member = findMemberById(requestDto.memberId());
 
 		// 회원의 역할이 이미 MENTOR인지 확인
 		if (member.getUserRole() == UserRole.MENTOR) {
@@ -82,9 +81,7 @@ public class MentorService {
 		}
 
 		// 직무 엔티티 조회
-		Job job = jobRepository.findById(requestDto.jobId())
-				.orElseThrow(() -> new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
-						"직무를 찾을 수 없습니다: " + requestDto.jobId()));
+		Job job = findJobById(requestDto.jobId());
 
 		// 멘토 애플리케이션 엔티티 생성 및 저장
 		MentorApplyProposal savedProposal = createAndSaveMentorProposal(requestDto, member, job);
@@ -105,9 +102,10 @@ public class MentorService {
 			MentorEditProposalRequest requestDto,
 			List<MultipartFile> files) {
 
-		Mentor mentor = mentorRepository.findById(memberId)
-			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"멘토를 찾을 수 없습니다: " + memberId));
+		// 파일이나 마크다운 중 하나는 필수
+		validateFileOrMarkdown(files, requestDto.getIntroduction());
+
+		Mentor mentor = findMentorById(memberId);
 
 		// 현재 정보 수정 요청 중인지 확인
 		if (mentor.getModificationStatus() == ModificationStatus.PENDING) {
@@ -122,9 +120,7 @@ public class MentorService {
 		}
 
 		// 직무 엔티티 조회
-		Job job = jobRepository.findById(requestDto.getJobId())
-				.orElseThrow(() -> new MentorException(MentorErrorCode.JOB_NOT_FOUND,
-						"직무 정보를 찾을 수 없습니다: " + requestDto.getJobId()));
+		Job job = findJobById(requestDto.getJobId());
 
 		// 수정 요청 엔티티 생성 및 저장
 		MentorEditProposal savedModification = createAndSaveMentorModification(requestDto, mentor, job);
@@ -142,50 +138,10 @@ public class MentorService {
 		return MentorEditUpdateRenewalResponse.from(savedModification);
 	}
 
-	// 멘토 지원서 생성 및 저장을 위한 내부 메소드
-	private MentorApplyProposal createAndSaveMentorProposal(
-			MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto,
-			Member member,
-			Job job) {
-
-		MentorApplyProposal mentorApplyProposal = MentorApplyProposal.builder()
-				.member(member)
-				.job(job)
-				.name(requestDto.name())
-				.career(requestDto.career())
-				.phone(requestDto.phone())
-				.email(requestDto.email())
-				.currentCompany(requestDto.currentCompany())
-				.introduction(requestDto.introduction())
-				.status(MentorApplyProposalStatus.PENDING)
-				.build();
-
-		return mentorApplyProposalRepository.save(mentorApplyProposal);
-	}
-
-	// 멘토 수정 요청 생성 및 저장을 위한 내부 메소드
-	private MentorEditProposal createAndSaveMentorModification(
-			MentorEditProposalRequest requestDto,
-			Mentor mentor,
-			Job job) {
-
-		MentorEditProposal modification = MentorEditProposal.builder()
-				.member(mentor.getMember())
-				.career(requestDto.getCareer())
-				.currentCompany(requestDto.getCurrentCompany())
-				.job(job)
-				.introduction(requestDto.getIntroduction())
-				.status(MentorEditProposalStatus.PENDING)
-				.build();
-
-		return mentorEditProposalRepository.save(modification);
-	}
-
 	//멘토 정보 조회
+	@Transactional(readOnly = true)
 	public MentorInfoResponse getMentorInfo(Long memberId) {
-		Mentor mentor = mentorRepository.findById(memberId)
-			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"해당 멘토를 찾을 수 없습니다: " + memberId));
+		Mentor mentor = findMentorById(memberId);
 
 		// 멘토의 클래스 ID 목록 조회
 		List<Long> classIds = mentorRepository.findMentoringClassIdsByMentor(mentor);
@@ -204,14 +160,16 @@ public class MentorService {
 	}
 
 	//멘토 정보 수정 요청 목록 조회
+	@Transactional(readOnly = true)
 	public MentorChangeResponse.ChangeListResponse getModificationRequests(
 		Long memberId,
 		MentorChangeRequest.ModificationRequestParams params) {
+
 		// 멘토 존재 여부 확인
-		if (!mentorRepository.existsById(memberId)) {
-			throw new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"해당 멘토를 찾을 수 없습니다: " + memberId);
-		}
+		checkMentorExists(memberId);
+
+		// 상태 유효성 검증
+		validateStatusParameter(params.status());
 
 		// 페이지네이션 설정
 		Pageable pageable = PageRequest.of(
@@ -244,46 +202,16 @@ public class MentorService {
 					modificationPage.getTotalElements()
 				)
 			);
+		} catch (IllegalArgumentException e) {
+			throw new MentorException(MentorErrorCode.INVALID_STATUS_PARAM,
+					"유효하지 않은 상태값입니다: " + params.status());
 		} catch (Exception e) {
 			throw new MentorException(MentorErrorCode.INVALID_STATUS_PARAM,
-				"멘토 정보 수정 요청 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+					"멘토 정보 수정 요청 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 
-	//멘토 정보 수정 요청을 DTO로 변환합니다.
-	private MentorChangeResponse.ChangeRequestData convertToChangeRequestData(MentorEditProposal proposal) {
-		Map<String, MentorChangeResponse.FieldChange<?>> modifiedFields = new HashMap<>();
-
-		// 기존 멘토 정보가 필요하므로 Member(=Mentor) 엔티티를 통해 접근해야 함
-		Mentor mentor = mentorRepository.findById(proposal.getMember().getId())
-			.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND, "멘토 정보를 찾을 수 없습니다."));
-
-		if (!proposal.getCareer().equals(mentor.getCareer())) {
-			modifiedFields.put("career",
-				new MentorChangeResponse.FieldChange<>(mentor.getCareer(), proposal.getCareer()));
-		}
-		if (!proposal.getCurrentCompany().equals(mentor.getCurrentCompany())) {
-			modifiedFields.put("currentCompany",
-				new MentorChangeResponse.FieldChange<>(mentor.getCurrentCompany(), proposal.getCurrentCompany()));
-		}
-		if (!proposal.getJob().getId().equals(mentor.getJob().getId())) {
-			modifiedFields.put("jobId",
-				new MentorChangeResponse.FieldChange<>(mentor.getJob().getId(), proposal.getJob().getId()));
-		}
-		if (!proposal.getIntroduction().equals(mentor.getIntroduction())) {
-			modifiedFields.put("introduction",
-				new MentorChangeResponse.FieldChange<>(mentor.getIntroduction(), proposal.getIntroduction()));
-		}
-
-		return new MentorChangeResponse.ChangeRequestData(
-			proposal.getId(),
-			proposal.getStatus().name(),
-			proposal.getCreatedAt(),
-			modifiedFields
-		);
-	}
-
-	@Transactional
+	@Transactional(readOnly = true)
 	public MentorApplyResponse.GetApplyMenteePageList getApplyByMentor(Long memberId, int page, int size) {
 
 		Mentor mentor = mentorRepository.findById(memberId)
@@ -330,4 +258,117 @@ public class MentorService {
 		return MentorApplyStatusResponse.from(updatedApply);
 	}
 
+	// 멘토 지원서 생성 및 저장을 위한 내부 메소드
+	private MentorApplyProposal createAndSaveMentorProposal(
+			MentorApplyProposalRequest.MentorApplyProposalRequestDto requestDto,
+			Member member,
+			Job job) {
+
+		MentorApplyProposal mentorApplyProposal = MentorApplyProposal.builder()
+				.member(member)
+				.job(job)
+				.name(requestDto.name())
+				.career(requestDto.career())
+				.phone(requestDto.phone())
+				.email(requestDto.email())
+				.currentCompany(requestDto.currentCompany())
+				.introduction(requestDto.introduction())
+				.status(MentorApplyProposalStatus.PENDING)
+				.build();
+
+		return mentorApplyProposalRepository.save(mentorApplyProposal);
+	}
+
+	// 멘토 수정 요청 생성 및 저장을 위한 내부 메소드
+	private MentorEditProposal createAndSaveMentorModification(
+			MentorEditProposalRequest requestDto,
+			Mentor mentor,
+			Job job) {
+
+		MentorEditProposal modification = MentorEditProposal.builder()
+				.member(mentor.getMember())
+				.career(requestDto.getCareer())
+				.currentCompany(requestDto.getCurrentCompany())
+				.job(job)
+				.introduction(requestDto.getIntroduction())
+				.status(MentorEditProposalStatus.PENDING)
+				.build();
+
+		return mentorEditProposalRepository.save(modification);
+	}
+
+	//멘토 정보 수정 요청을 DTO로 변환합니다.
+	private MentorChangeResponse.ChangeRequestData convertToChangeRequestData(MentorEditProposal proposal) {
+		Map<String, MentorChangeResponse.FieldChange<?>> modifiedFields = new HashMap<>();
+
+		// 기존 멘토 정보 조회
+		Mentor mentor = findMentorById(proposal.getMember().getId());
+
+		if (!proposal.getCareer().equals(mentor.getCareer())) {
+			modifiedFields.put("career",
+					new MentorChangeResponse.FieldChange<>(mentor.getCareer(), proposal.getCareer()));
+		}
+		if (!proposal.getCurrentCompany().equals(mentor.getCurrentCompany())) {
+			modifiedFields.put("currentCompany",
+					new MentorChangeResponse.FieldChange<>(mentor.getCurrentCompany(), proposal.getCurrentCompany()));
+		}
+		if (!proposal.getJob().getId().equals(mentor.getJob().getId())) {
+			modifiedFields.put("jobId",
+					new MentorChangeResponse.FieldChange<>(mentor.getJob().getId(), proposal.getJob().getId()));
+		}
+		if (!proposal.getIntroduction().equals(mentor.getIntroduction())) {
+			modifiedFields.put("introduction",
+					new MentorChangeResponse.FieldChange<>(mentor.getIntroduction(), proposal.getIntroduction()));
+		}
+
+		return new MentorChangeResponse.ChangeRequestData(
+				proposal.getId(),
+				proposal.getStatus().name(),
+				proposal.getCreatedAt(),
+				modifiedFields
+		);
+	}
+
+	// 멤버 ID로 멤버 조회
+	private Member findMemberById(Long memberId) {
+		return memberRepository.findById(memberId)
+				.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
+						"회원을 찾을 수 없습니다: " + memberId));
+	}
+
+	// 직무 ID로 직무 조회
+	private Job findJobById(Long jobId) {
+		return jobRepository.findById(jobId)
+				.orElseThrow(() -> new MentorException(MentorErrorCode.INVALID_MENTOR_APPLICATION,
+						"직무를 찾을 수 없습니다: " + jobId));
+	}
+
+	// 멘토 ID로 멘토 조회
+	private Mentor findMentorById(Long mentorId) {
+		return mentorRepository.findById(mentorId)
+				.orElseThrow(() -> new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
+						"멘토를 찾을 수 없습니다: " + mentorId));
+	}
+
+	// 멘토 존재 여부 확인
+	private void checkMentorExists(Long mentorId) {
+		if (!mentorRepository.existsById(mentorId)) {
+			throw new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
+					"해당 멘토를 찾을 수 없습니다: " + mentorId);
+		}
+	}
+
+	// 파일 또는 마크다운 필수 검증
+	private void validateFileOrMarkdown(List<MultipartFile> files, String markdown) {
+		if ((files == null || files.isEmpty()) && (markdown == null || markdown.isEmpty())) {
+			throw new IllegalArgumentException("파일 또는 마크다운 텍스트 중 하나는 필수입니다.");
+		}
+	}
+
+	// 상태값 유효성 검증
+	private void validateStatusParameter(String status) {
+		if (status != null && !List.of("PENDING", "APPROVED", "REJECTED").contains(status)) {
+			throw new IllegalArgumentException("유효하지 않은 상태값입니다.");
+		}
+	}
 }
