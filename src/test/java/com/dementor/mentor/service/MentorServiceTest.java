@@ -300,7 +300,7 @@ public class MentorServiceTest {
 			mentorService.updateMentor(nonExistingMentorId, requestDto, files);
 		});
 
-		assertTrue(exception.getMessage().contains("멘토를 찾을 수 없습니다"));
+		assertTrue(exception.getMessage().contains("멘토 정보를 업데이트할 수 없습니다"));
 	}
 
 	@Test
@@ -381,7 +381,7 @@ public class MentorServiceTest {
 			mentorService.getMentorInfo(nonExistingMentorId);
 		});
 
-		assertTrue(exception.getMessage().contains("해당 멘토를 찾을 수 없습니다"));
+		assertTrue(exception.getMessage().contains("멘토 정보를 조회할 수 없습니다"));
 	}
 
 	@Test

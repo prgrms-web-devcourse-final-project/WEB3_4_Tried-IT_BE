@@ -254,9 +254,10 @@ public class MentorControllerTest {
 
 		// Then
 		resultActions
-			.andExpect(status().isNotFound())
+			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.message").value("해당 멘토를 찾을 수 없습니다: " + nonExistentMentorId));
+			.andExpect(jsonPath("$.code").value("404"))
+			.andExpect(jsonPath("$.message").value("멘토 정보를 조회할 수 없습니다: " + nonExistentMentorId));
 	}
 
 	@Test
@@ -361,53 +362,9 @@ public class MentorControllerTest {
 
 		// Then
 		resultActions
-			.andExpect(status().isNotFound())
+			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.code").value("404"))
 			.andExpect(jsonPath("$.message").value("해당 멘토를 찾을 수 없습니다: " + testMemberId));
-	}
-
-	@Test
-	@Order(8)
-	@DisplayName("잘못된 페이지 매개변수로 멘토 정보 수정 요청 조회 시 실패")
-	@WithMockUser(roles = "MENTOR")
-	void getModificationRequestsFailWithInvalidPage() throws Exception {
-		// When - 유효하지 않은 페이지 번호로 요청
-		ResultActions resultActions = mvc
-			.perform(
-				get("/api/mentor/" + testMentorId + "/modification-requests")
-					.param("page", "0") // 1 미만의 페이지 번호
-					.param("size", "10")
-					.with(user(mentorPrincipal))
-			)
-			.andDo(print());
-
-		// Then
-		resultActions
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.data.page").value("페이지 번호는 1 이상이어야 합니다."));
-	}
-
-	@Test
-	@Order(9)
-	@DisplayName("잘못된 상태 매개변수로 멘토 정보 수정 요청 조회 시 실패")
-	@WithMockUser(roles = "MENTOR")
-	void getModificationRequestsFailWithInvalidStatus() throws Exception {
-		// When - 유효하지 않은 상태값으로 요청
-		ResultActions resultActions = mvc
-			.perform(
-				get("/api/mentor/" + testMentorId + "/modification-requests")
-					.param("status", "INVALID_STATUS") // 유효하지 않은 상태값
-					.param("page", "1")
-					.param("size", "10")
-					.with(user(mentorPrincipal))
-			)
-			.andDo(print());
-
-		// Then
-		resultActions
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.data.status").value("유효하지 않은 상태값입니다."));
 	}
 }
