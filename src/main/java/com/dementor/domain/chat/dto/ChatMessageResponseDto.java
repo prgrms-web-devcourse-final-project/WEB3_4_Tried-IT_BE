@@ -4,6 +4,7 @@ import com.dementor.domain.chat.entity.MessageType;
 //import com.dementor.domain.chat.entity.SenderType;
 import com.dementor.domain.chat.entity.SenderType;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,8 @@ public class ChatMessageResponseDto {  //구독자에게 브로드캐스트할 �
 	private SenderType senderType; // MEMBER, ADMIN, SYSTEM
 	//    private String nickname;
 	private String content;
+
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
 	private ZonedDateTime sentAt; // ✅ ZonedDateTime으로 변경
 
 }
