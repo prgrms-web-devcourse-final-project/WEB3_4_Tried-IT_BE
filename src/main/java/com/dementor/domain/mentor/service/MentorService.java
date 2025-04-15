@@ -213,22 +213,39 @@ public class MentorService {
 
 	//멘토 정보 수정 요청 목록 조회
 	public MentorChangeResponse.ChangeListResponse getModificationRequests(
-		Long memberId,
-		MentorChangeRequest.ModificationRequestParams params) {
+			Long memberId,
+			MentorChangeRequest.ModificationRequestParams params) {
+
 		// 멘토 존재 여부 확인
 		if (!mentorRepository.existsById(memberId)) {
 			throw new MentorException(MentorErrorCode.MENTOR_NOT_FOUND,
-				"해당 멘토를 찾을 수 없습니다: " + memberId);
+					"해당 멘토를 찾을 수 없습니다: " + memberId);
 		}
 
-		// 페이지네이션 설정
-		Pageable pageable = PageRequest.of(
-			params.page() - 1, // 0-based page index
-			params.size(),
-			Sort.by(Sort.Direction.DESC, "createdAt")
-		);
-
 		try {
+			// proposalId가 제공된 경우 해당 요청만 상세 조회
+			if (params.proposalId() != null) {
+				MentorEditProposal proposal = mentorEditProposalRepository.findById(params.proposalId())
+						.orElseThrow(() -> new MentorException(MentorErrorCode.EDIT_PROPOSAL_NOT_FOUND,
+								"해당 수정 요청을 찾을 수 없습니다: " + params.proposalId()));
+
+				// 단일 요청을 리스트로 변환하여 반환
+				List<MentorChangeResponse.ChangeRequestData> result =
+						List.of(convertToChangeRequestData(proposal));
+
+				return new MentorChangeResponse.ChangeListResponse(
+						result,
+						new MentorChangeResponse.Pagination(1, 1, 1L)
+				);
+			}
+
+			// 페이지네이션 설정
+			Pageable pageable = PageRequest.of(
+					params.page() - 1, // 0-based page index
+					params.size(),
+					Sort.by(Sort.Direction.DESC, "createdAt")
+			);
+
 			// 상태 필터가 있으면 상태별로 조회, 없으면 전체 조회
 			Page<MentorEditProposal> modificationPage;
 
@@ -241,20 +258,22 @@ public class MentorService {
 
 			// 결과 변환 및 반환
 			List<MentorChangeResponse.ChangeRequestData> changeRequests = modificationPage.getContent().stream()
-				.map(this::convertToChangeRequestData)
-				.collect(Collectors.toList());
+					.map(this::convertToChangeRequestData)
+					.collect(Collectors.toList());
 
 			return new MentorChangeResponse.ChangeListResponse(
-				changeRequests,
-				new MentorChangeResponse.Pagination(
-					params.page(),
-					params.size(),
-					modificationPage.getTotalElements()
-				)
+					changeRequests,
+					new MentorChangeResponse.Pagination(
+							params.page(),
+							params.size(),
+							modificationPage.getTotalElements()
+					)
 			);
+		} catch (MentorException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new MentorException(MentorErrorCode.INVALID_STATUS_PARAM,
-				"멘토 정보 수정 요청 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+					"멘토 정보 수정 요청 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 

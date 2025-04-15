@@ -17,7 +17,8 @@ public enum MentorErrorCode {
 	INVALID_STATUS_PARAM(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 파라미터입니다."),
 	UNAUTHORIZED_MODIFICATION(HttpStatus.FORBIDDEN, "해당 멘토 정보를 수정할 권한이 없습니다."),
 	UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "해당 멘토 정보에 접근할 권한이 없습니다."),
-	JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "직무 정보를 찾을 수 없습니다.");
+	JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "직무 정보를 찾을 수 없습니다."),
+	EDIT_PROPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 수정 요청을 찾을 수 없습니다.");
 
 	private final HttpStatus status;
 	private final String message;

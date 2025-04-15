@@ -10,11 +10,17 @@ public class MentorChangeRequest {
 		Integer page,
 
 		@Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.")
-		Integer size
+		Integer size,
+		Long proposalId
 	) {
+		// 기존 생성자
+		public ModificationRequestParams(String status, Integer page, Integer size) {
+			this(status, page, size, null);
+		}
+
 		// 기본값을 설정하는 정적 팩토리 메서드
 		public static ModificationRequestParams defaultParams() {
-			return new ModificationRequestParams(null, 1, 10);
+			return new ModificationRequestParams(null, 1, 10, null);
 		}
 	}
 }

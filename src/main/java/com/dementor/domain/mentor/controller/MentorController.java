@@ -168,6 +168,7 @@ public class MentorController {
 		@RequestParam(required = false) String status,
 		@RequestParam(required = false, defaultValue = "1") Integer page,
 		@RequestParam(required = false, defaultValue = "10") Integer size,
+		@RequestParam(required = false) Long proposalId,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		try {
@@ -197,7 +198,7 @@ public class MentorController {
 			}
 
 			MentorChangeRequest.ModificationRequestParams params =
-				new MentorChangeRequest.ModificationRequestParams(status, page, size);
+					new MentorChangeRequest.ModificationRequestParams(status, page, size, proposalId);
 			MentorChangeResponse.ChangeListResponse response =
 				mentorService.getModificationRequests(memberId, params);
 
