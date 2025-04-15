@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "chat_room")
@@ -22,21 +23,21 @@ public class ChatRoom {
 	@Column(nullable = false)
 	private RoomType roomType; // MENTORING_CHAT, ADMIN_CHAT
 
-	@Column(nullable = false) // 채팅방 생성 시간
-	private LocalDateTime createdAt;
+	@Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private ZonedDateTime createdAt;
 
 	@PrePersist
 	protected void onCreate() {
 		if (createdAt == null) {
-			createdAt = LocalDateTime.now();
+			createdAt = ZonedDateTime.now();  // 서버 시스템 시간대 기준
 		}
 	}
 
-	@Column(nullable = true) //채팅방 기준 마지막 메시지
-	private LocalDateTime lastMessageAt;
 
+	@Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private ZonedDateTime lastMessageAt;
 	// 메시지 보낼 때 직접 갱신
-	public void updateLastMessageTime(LocalDateTime sentAt) {
+	public void updateLastMessageTime(ZonedDateTime sentAt) {
 		this.lastMessageAt = sentAt;
 	}
 

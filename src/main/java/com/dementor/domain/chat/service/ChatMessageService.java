@@ -99,7 +99,7 @@ public class ChatMessageService {
                 .senderId(dto.getSenderId())
                 .senderType(dto.getSenderType())
                 .content(dto.getContent())
-                .sentAt(LocalDateTime.now())
+                .sentAt(ZonedDateTime.now())
                 .build();
 
 //		// 시간 변환: UTC → KST

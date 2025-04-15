@@ -187,7 +187,7 @@ public class ChatRoomService {
 				room.getChatRoomId(),
 				room.getRoomType(),
 				lastMessage != null ? lastMessage.getContent() : null,
-				lastMessage != null ? lastMessage.getSentAt().atZone(ZoneId.of("Asia/Seoul")) : null,
+				lastMessage != null ? lastMessage.getSentAt() : null, // ✅ 수정: atZone(...) 제거
 				targetNickname,
 				targetId,
 				hasUnread

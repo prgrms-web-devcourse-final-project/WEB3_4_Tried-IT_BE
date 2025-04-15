@@ -1,6 +1,8 @@
 package com.dementor.domain.chat.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,16 +61,34 @@ public class ChatMessage {
 	@Column(nullable = false, columnDefinition = "TEXT")
 	private String content;
 
-	// 메시지 보낸 시간
-	@Column(nullable = false)
-	private LocalDateTime sentAt;
+//	// 메시지 보낸 시간
+//	@Column(nullable = false)
+//	private LocalDateTime sentAt;
+//
+//	@PrePersist
+//	protected void onCreate() {
+//		if (sentAt == null) {
+//			sentAt = LocalDateTime.now();
+//		}
+//	}
+// ✅ ZonedDateTime 적용 엔티티
+@Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+private ZonedDateTime sentAt; // ✅ LocalDateTime → ZonedDateTime 변경
 
 	@PrePersist
 	protected void onCreate() {
 		if (sentAt == null) {
-			sentAt = LocalDateTime.now();
+			sentAt = ZonedDateTime.now(); // ✅ Asia/Seoul 생략, JVM 기본 시간대 사용
 		}
 	}
+//	@PrePersist
+//	protected void onCreate() {
+//		if (sentAt == null) {
+//			// sentAt = LocalDateTime.now();
+//			sentAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul")); // ✅ KST로 초기화
+//		}
+//	}
+
 
 	@Column(name = "is_read", nullable = false)
 	private boolean read = false;

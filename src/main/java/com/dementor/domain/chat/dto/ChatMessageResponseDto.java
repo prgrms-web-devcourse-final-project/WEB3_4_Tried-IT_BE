@@ -27,7 +27,7 @@ public class ChatMessageResponseDto {  //구독자에게 브로드캐스트할 �
 	private SenderType senderType; // MEMBER, ADMIN, SYSTEM
 	//    private String nickname;
 	private String content;
-	private LocalDateTime sentAt;  // 엔티티에서는 local, db는 타임존 개념없이 DATETIME/TIMESTAMP 타입으로만 저장됨
+	private ZonedDateTime sentAt; // ✅ ZonedDateTime으로 변경
 
 }
 
