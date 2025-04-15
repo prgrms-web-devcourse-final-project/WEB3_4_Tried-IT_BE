@@ -61,6 +61,8 @@ public class ChatMessageController {
 //        @AuthenticationPrincipal CustomUserDetails user // 로그인한 사용자 정보 자동 주입
 
 	) {
+		System.out.println("HIHIHI");
+
 //        Long senderId = user.getId();
 //        String authority = user.getAuthorities().iterator().next().getAuthority();
 //        SenderType senderType = authority.equals("ROLE_ADMIN") ? SenderType.ADMIN : SenderType.MEMBER;

@@ -21,4 +21,5 @@ public class ChatRoomResponseDto {
 	private ZonedDateTime lastMessageAt; // 마지막 메시지 보낸시간
 	private String targetNickname;  //상대방 닉네임
 	private Long targetId; //상대방 ID
+	private boolean hasUnread; //안 읽은 메시지 여부 표시
 }

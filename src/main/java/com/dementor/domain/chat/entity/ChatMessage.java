@@ -70,19 +70,12 @@ public class ChatMessage {
 		}
 	}
 
-	//   -> *senderId로
-	//    @Column(nullable = false)
-	//    private Long memberId;
-	//
-	//    @Column
-	//    private Long adminId; // 추후 연동 대비
+	@Column(name = "is_read", nullable = false)
+	private boolean read = false;
+
 
 	//    @Column(nullable = false)
 	//    private String nickname;   - *닉네임 동적으로 붙일것
 	//
-
-	//    @Enumerated(EnumType.STRING)
-	//    @Column(nullable = false)
-	//    private SenderType senderType; // "MEMBER" 또는 "ADMIN"
 
 }

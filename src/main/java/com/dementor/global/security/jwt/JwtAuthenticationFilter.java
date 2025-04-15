@@ -33,6 +33,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 
+		if (!request.getRequestURI().startsWith("/api/")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		// 리프레시 엔드포인트는 리프레시 토큰 검증
 		if (request.getRequestURI().equals("/api/admin/refresh") || request.getRequestURI()
 			.equals("/api/member/refresh")) {

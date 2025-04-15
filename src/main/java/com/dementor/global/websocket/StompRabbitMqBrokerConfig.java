@@ -25,7 +25,18 @@ public class StompRabbitMqBrokerConfig implements WebSocketMessageBrokerConfigur
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/ws").withSockJS();
+		registry
+				.addEndpoint("/ws")
+				.setAllowedOrigins(
+						"https://www.dementor.site",
+						"https://api.dementor.site",
+						"https://admin.dementor.site",
+						"https://local.dementor.site:5173",
+						"https://localhost:5173",
+						"https://admin-local.dementor.site:5174",
+						"https://cdpn.io"
+				)
+				.withSockJS();
 	}
 
 	@Override

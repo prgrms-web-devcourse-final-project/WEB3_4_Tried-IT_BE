@@ -129,7 +129,7 @@ public class ChatRoomService {
 
 	//---------------------채팅방 상세 조회(viewerId,viewerType 매칭) --------------------------------------
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, CustomUserDetails userDetails) {
 		ChatRoom room = chatRoomRepository.findById(chatRoomId)
 				.orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
@@ -157,6 +157,9 @@ public class ChatRoomService {
 			}
 		}
 
+		// 입장시 읽음 처리
+		markMessagesAsRead(chatRoomId, viewerId);
+
 		return toDto(room, viewerId, viewerType);
 	}
 
@@ -170,6 +173,11 @@ public class ChatRoomService {
 				.findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(room.getChatRoomId());
 		ChatMessage lastMessage = messages.isEmpty() ? null : messages.get(0);
 
+		// 안 읽은 메시지가 있는지 확인
+		boolean hasUnread = chatMessageRepository
+				.existsByChatRoom_ChatRoomIdAndSenderIdNotAndReadFalse(room.getChatRoomId(), viewerId);
+
+
 		//상대방 닉네임 가져오기
 		String targetNickname = getTargetNickname(room, viewerId, viewerType);
 		//상대방 Id 가져오기
@@ -181,7 +189,8 @@ public class ChatRoomService {
 				lastMessage != null ? lastMessage.getContent() : null,
 				lastMessage != null ? lastMessage.getSentAt().atZone(ZoneId.of("Asia/Seoul")) : null,
 				targetNickname,
-				targetId
+				targetId,
+				hasUnread
 		);
 	}
 
@@ -217,7 +226,21 @@ public class ChatRoomService {
 		return null;
 	}
 
+	// 메시지 읽음 처리 메서드
+	@Transactional
+	public void markMessagesAsRead(Long chatRoomId, Long viewerId) {
+		List<ChatMessage> unreadMessages = chatMessageRepository
+				.findByChatRoom_ChatRoomIdAndSenderIdNotAndReadFalse(chatRoomId, viewerId);
 
+		for (ChatMessage message : unreadMessages) {
+			message.setRead(true);
+		}
+	}
+
+
+	public long count() {
+		return chatRoomRepository.count();
+	}
 }
 
 

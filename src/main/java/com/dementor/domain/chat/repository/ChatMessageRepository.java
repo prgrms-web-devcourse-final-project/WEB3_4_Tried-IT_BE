@@ -19,4 +19,11 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
 	// 채팅방 목록 조회용: 해당 방의 마지막 메시지 1개 (보통 가장 최근 메시지 시간 확인용)
 	List<ChatMessage> findTop1ByChatRoom_ChatRoomIdOrderBySentAtDesc(Long chatRoomId);
+
+	// 내가 보지 않은 메시지가 있는지 여부 (뱃지 표시용)
+	boolean existsByChatRoom_ChatRoomIdAndSenderIdNotAndReadFalse(Long chatRoomId, Long viewerId);
+
+	//  내가 보지 않은 메시지들을  가져오는 메서드 (read = false를 true로 바꿀때 사용)
+	List<ChatMessage> findByChatRoom_ChatRoomIdAndSenderIdNotAndReadFalse(Long chatRoomId, Long viewerId);
+
 }
