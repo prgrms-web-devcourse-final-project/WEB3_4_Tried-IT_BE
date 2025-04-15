@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -25,7 +27,7 @@ public class ChatMessageResponseDto {  //구독자에게 브로드캐스트할 �
 	private SenderType senderType; // MEMBER, ADMIN, SYSTEM
 	//    private String nickname;
 	private String content;
-	private ZonedDateTime sentAt;  // 엔티티에서는 local, db는 타임존 개념없이 DATETIME/TIMESTAMP 타입으로만 저장됨
+	private LocalDateTime sentAt;  // 엔티티에서는 local, db는 타임존 개념없이 DATETIME/TIMESTAMP 타입으로만 저장됨
 
 }
 

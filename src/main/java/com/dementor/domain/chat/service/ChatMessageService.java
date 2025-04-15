@@ -59,11 +59,11 @@ public class ChatMessageService {
         return messages.stream()
                 .sorted(Comparator.comparingLong(ChatMessage::getChatMessageId))
                 .map(chatMessage -> {
-                    ZonedDateTime seoulTime = chatMessage.getSentAt()
-                            .atZone(ZoneId.of("Asia/Seoul"));
-
-//                            .atZone(ZoneId.of("UTC"))
-//                            .withZoneSameInstant(ZoneId.of("Asia/Seoul")); //시간 변환
+//                    ZonedDateTime seoulTime = chatMessage.getSentAt()
+//                            .atZone(ZoneId.of("Asia/Seoul"));
+//
+////                            .atZone(ZoneId.of("UTC"))
+////                            .withZoneSameInstant(ZoneId.of("Asia/Seoul")); //시간 변환
 
 
                     return new ChatMessageResponseDto(
@@ -71,7 +71,7 @@ public class ChatMessageService {
                             chatMessage.getSenderId(),
                             chatMessage.getSenderType(),
                             chatMessage.getContent(),
-                            seoulTime);
+                            chatMessage.getSentAt());
                 }).toList();
     }
 
@@ -102,10 +102,10 @@ public class ChatMessageService {
                 .sentAt(LocalDateTime.now())
                 .build();
 
-		// 시간 변환: UTC → KST
-		ZonedDateTime seoulTime = chatMessage.getSentAt()
-				.atZone(ZoneId.of("Asia/Seoul"));
-//				.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+//		// 시간 변환: UTC → KST
+//		ZonedDateTime seoulTime = chatMessage.getSentAt()
+//				.atZone(ZoneId.of("Asia/Seoul"));
+////				.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
 
         // DB 저장
         chatMessageRepository.save(chatMessage);
@@ -117,7 +117,7 @@ public class ChatMessageService {
                 chatMessage.getSenderId(),
                 chatMessage.getSenderType(),
                 chatMessage.getContent(),
-				seoulTime        );
+                chatMessage.getSentAt()         );
 
         // RabbitMQ로 브로드캐스트 전송
         rabbitTemplate.convertAndSend(
