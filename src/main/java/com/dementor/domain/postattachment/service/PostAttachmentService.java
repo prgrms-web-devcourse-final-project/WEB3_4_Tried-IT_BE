@@ -366,11 +366,6 @@ public class PostAttachmentService {
 		PostAttachment attachment = postAttachmentRepository.findById(attachmentId)
 			.orElseThrow(() -> new PostAttachmentException(PostAttachmentErrorCode.FILE_NOT_FOUND));
 
-		if (!hasAccessPermission(memberId, attachment)) {
-			throw new PostAttachmentException(PostAttachmentErrorCode.FILE_ACCESS_DENIED,
-				"해당 파일에 접근할 권한이 없습니다.");
-		}
-
 		try {
 			URL url = new URL(attachment.getStoreFilePath());
 			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
