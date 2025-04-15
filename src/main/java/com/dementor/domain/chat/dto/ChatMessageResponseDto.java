@@ -29,7 +29,7 @@ public class ChatMessageResponseDto {  //구독자에게 브로드캐스트할 �
 	//    private String nickname;
 	private String content;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Seoul"  )
 	private ZonedDateTime sentAt; // ✅ ZonedDateTime으로 변경
 
 }
