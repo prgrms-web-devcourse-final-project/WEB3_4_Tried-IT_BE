@@ -4,8 +4,8 @@
 
 ### 배포 URL
 
-> Admin : https://d2amukg4n6rvst.cloudfront.net/  <br>
-Service : https://d2k2noacw72rgr.cloudfront.net/
+> Admin : https://admin.dementor.site  <br>
+Service : https://www.dementor.site
 > 
 
 <br>
@@ -30,10 +30,13 @@ Service : https://d2k2noacw72rgr.cloudfront.net/
 
 ## 1. 개발 환경
 
-- Back-end : 제공된 API 활용
-- 버전 및 이슈관리 : Github, Github Issues,
-- 협업 툴 : Discord, Notion, Github
-- 서비스 배포 환경 : Netlify
+- 백엔드: Spring Boot 3.4.4, Java 17
+- ORM: JPA (Hibernate)
+- 데이터베이스: MySQL8
+- 실시간/비동기 처리: Firebase, RabbitMQ
+- 캐시 & 세션 관리: Redis
+- CI/CD: Github Actions
+- 인증 및 보안: Spring Security, JWT
 
 <br>
 
@@ -43,31 +46,31 @@ Service : https://d2k2noacw72rgr.cloudfront.net/
 
 ### 🍊 최대욱
 
-- 
+- 회원, 관리자 로그인, 관리자 기능 공동개발
 
 <br>
 
 ### 👻 김호남
 
-- 
+- 멘토링 수업 도메인 개발, 멘토 기능 공동개발
 
 <br>
 
 ### 😎 권보경
 
-- 
+- 채팅 도메인 개발
 
 <br>
 
 ### 🐬 백민진
 
-- 
+- 멘토링 신청 도메인 개발, 멘토 기능 공동 개발
 
 <br>
 
 ### 😃 최다빈
 
-- 
+- 멘토 도메인 개발, 파일 첨부 도메인 개발
 
 <br>
 
@@ -76,5 +79,11 @@ Service : https://d2k2noacw72rgr.cloudfront.net/
 ### 개발 기간
 
 - 전체 개발 기간 : 2025-03-21 ~ 2025-04-16
+
+<br>
+
+## 6. 프로젝트 구조
+
+<img width="5589" alt="frame (9)" src="https://github.com/user-attachments/assets/682a6486-74d9-475c-94e9-8f6403629d87" />
 
 <br>
